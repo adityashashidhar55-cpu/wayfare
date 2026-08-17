@@ -20,10 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      # No `cache: npm` — that requires a lockfile, and we removed the corrupt
+      # one from the Kimi export. Caching a few seconds of install is not worth
+      # reintroducing the file that crashed npm outright.
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-          cache: npm
 
       # Run #1 failed with three steps at exit 127 (command not found) and a
       # `baseUrl has been removed` error that only TypeScript 7 emits — i.e.
