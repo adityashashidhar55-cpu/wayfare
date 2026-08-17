@@ -39,6 +39,16 @@ export function BalancesCard({
     onSuccess: () => utils.trips.settlements.invalidate({ tripId }),
     onError: (e) => toast(e.message || 'Could not save that settlement', { tone: 'danger' }),
   });
+  /* r27: undo. trips.deleteSettlement existed server-side from r25b but had no
+     button anywhere, so a settlement recorded by mistake - wrong direction,
+     wrong person, fat-fingered confirm - was permanent from the UI. */
+  const deleteSettlement = trpc.trips.deleteSettlement.useMutation({
+    onSuccess: () => {
+      void utils.trips.settlements.invalidate({ tripId });
+      toast('Payment removed - balances are back', { tone: 'info' });
+    },
+    onError: (e) => toast(e.message || 'Could not undo that payment', { tone: 'danger' }),
+  });
   const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
 
   const balances = useMemo(() => {
@@ -211,6 +221,50 @@ export function BalancesCard({
                 {naiveTransfers > debts.length ? ` instead of ${naiveTransfers}` : ''}
               </p>
             </>
+          )}
+
+          {/* r27: recorded payments, with undo. Without this list a settlement
+              was invisible after it was made - the debt simply disappeared and
+              there was no way to see what had been marked paid, let alone
+              reverse it. */}
+          {(settlements?.length ?? 0) > 0 && (
+            <div className="mt-6 border-t border-border pt-4">
+              <h4 className="type-small font-semibold text-ink-2">Recorded payments</h4>
+              <ul className="mt-2 space-y-1.5">
+                <AnimatePresence initial={false}>
+                  {[...(settlements ?? [])].reverse().map((s) => {
+                    const from = membersById.get(s.fromMemberId);
+                    const to = membersById.get(s.toMemberId);
+                    return (
+                      <motion.li
+                        key={s.id}
+                        layout="position"
+                        exit={{ opacity: 0, height: 0, marginBottom: 0, overflow: 'hidden' }}
+                        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                        className="flex items-center gap-2 rounded-md px-2 py-1.5"
+                      >
+                        <Check className="h-3.5 w-3.5 shrink-0 text-pine" strokeWidth={2.5} />
+                        <span className="type-caption min-w-0 flex-1 truncate text-ink-2">
+                          {from?.name ?? 'Someone'} paid {to?.name ?? 'someone'}{' '}
+                          <span className="tnum font-semibold text-ink">
+                            {formatMoney(s.amountCents, s.currency || homeCurrency)}
+                          </span>
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="shrink-0 text-ink-3 hover:text-ink"
+                          disabled={deleteSettlement.isPending}
+                          onClick={() => deleteSettlement.mutate({ id: s.id, tripId })}
+                        >
+                          Undo
+                        </Button>
+                      </motion.li>
+                    );
+                  })}
+                </AnimatePresence>
+              </ul>
+            </div>
           )}
         </div>
 

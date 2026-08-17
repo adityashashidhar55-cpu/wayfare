@@ -16,10 +16,47 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    /*
+     * r27: release signing.
+     *
+     * There was no signingConfig at all, so `assembleRelease` produced an
+     * unsigned APK that the Play Store rejects and a device refuses to
+     * install - the app could not actually ship.
+     *
+     * Credentials are read from keystore.properties (gitignored) or from
+     * environment variables, so CI can sign without a secrets file on disk.
+     * When neither is present the release build falls back to unsigned rather
+     * than failing, which keeps `./gradlew build` working for contributors who
+     * have no keystore.
+     */
+    signingConfigs {
+        release {
+            def props = new Properties()
+            def propsFile = rootProject.file('keystore.properties')
+            if (propsFile.exists()) {
+                propsFile.withInputStream { props.load(it) }
+            }
+            def storePath = props['storeFile'] ?: System.getenv('ANDROID_KEYSTORE_PATH')
+            def storePass = props['storePassword'] ?: System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            def alias = props['keyAlias'] ?: System.getenv('ANDROID_KEY_ALIAS')
+            def keyPass = props['keyPassword'] ?: System.getenv('ANDROID_KEY_PASSWORD')
+            if (storePath && storePass && alias && keyPass) {
+                storeFile file(storePath)
+                storePassword storePass
+                keyAlias alias
+                keyPassword keyPass
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // Only attach the config when it actually resolved to a keystore.
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

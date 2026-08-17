@@ -9,7 +9,10 @@ import { findUserByEmail } from "./queries/users";
 import { geocodeCity, searchPhoton } from "./queries/overpass";
 import { isGenericName, isParkingLikeName } from "./lib/place-quality";
 import { guessTimeZone, resolveTz, todayIn } from "./lib/tz";
+import { notify } from "./lib/notify";
+import { appUrl, sendTripInvite } from "./lib/mailer";
 import { convertCents } from "@contracts/fx";
+import { getRates } from "./lib/fx-refresh";
 import { TIERS } from "@contracts/premium";
 import { isKidRecharge, kidClass, kidScore } from "@contracts/kids";
 import {
@@ -24,6 +27,26 @@ import {
 import type { Dietary } from "@contracts/diet";
 
 const PRESENCE_COLORS = ["#BC5934", "#44604F", "#6E7FA3", "#A86B8C", "#B98A2E", "#6E9A8B"];
+
+/**
+ * "12-19 Mar 2027" for an invite subject line. Pure string formatting on the
+ * stored YYYY-MM-DD values, so no timezone is involved and nothing can shift
+ * the dates the way a Date round-trip would.
+ */
+function formatTripDates(startDate: string, endDate: string): string | null {
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const parse = (s: string) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+    if (!m) return null;
+    return { y: m[1]!, mo: Number(m[2]) - 1, d: Number(m[3]) };
+  };
+  const a = parse(startDate);
+  const b = parse(endDate);
+  if (!a || !b || !MONTHS[a.mo] || !MONTHS[b.mo]) return null;
+  if (a.y === b.y && a.mo === b.mo) return `${a.d}-${b.d} ${MONTHS[a.mo]} ${a.y}`;
+  if (a.y === b.y) return `${a.d} ${MONTHS[a.mo]} - ${b.d} ${MONTHS[b.mo]} ${a.y}`;
+  return `${a.d} ${MONTHS[a.mo]} ${a.y} - ${b.d} ${MONTHS[b.mo]} ${b.y}`;
+}
 
 export async function requireMembership(tripId: number, userId: number) {
   const db = getDb();
@@ -1416,7 +1439,90 @@ export const tripRouter = createRouter({
         role: input.role,
         presenceColor: PRESENCE_COLORS[members.length % PRESENCE_COLORS.length],
       });
-      return { id: Number(result[0].insertId), linked: invitedUser != null };
+
+      // r27: actually TELL the person. Until now this procedure created a
+      // pending row and stopped, so an invite reached the invitee only if the
+      // organiser messaged them separately. Two channels, both best-effort:
+      // the in-app bell when they already have an account, and email when we
+      // have an address. Neither may fail the invite itself.
+      let notified: "email" | "app" | "both" | "none" = "none";
+      if (invitedUser) {
+        await notify(invitedUser.id, {
+          kind: "invite",
+          title: `${ctx.user.name ?? "Someone"} added you to ${trip.title}`,
+          body: input.role === "editor"
+            ? "You can edit the plan and split expenses together."
+            : "You can follow the plan as it comes together.",
+          tripId: input.tripId,
+        });
+        notified = "app";
+      }
+      if (email) {
+        // A known user goes straight to the trip; a stranger lands on sign-up
+        // with the email prefilled, and claimPendingTripInvites() attaches the
+        // membership the moment they register.
+        const href = invitedUser
+          ? appUrl(`/trips/${input.tripId}`)
+          : appUrl(`/login?invite=${encodeURIComponent(email)}`);
+        const mail = await sendTripInvite({
+          to: email,
+          inviteeName: input.name,
+          inviterName: ctx.user.name ?? "A fellow traveller",
+          tripTitle: trip.title,
+          tripDates: formatTripDates(trip.startDate, trip.endDate),
+          role: input.role,
+          href,
+        });
+        if (mail.ok) notified = notified === "app" ? "both" : "email";
+      }
+
+      return { id: Number(result[0].insertId), linked: invitedUser != null, notified };
+    }),
+
+  /**
+   * r27: resend an invite that never landed (spam folder, typo'd then fixed,
+   * or sent while the mailer was unconfigured). Rate-limited by the provider,
+   * not here; the row already exists so this is idempotent.
+   */
+  resendInvite: authedQuery
+    .input(z.object({ tripId: z.number(), memberId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await requireEditor(input.tripId, ctx.user.id);
+      const db = getDb();
+      const [member] = await db
+        .select()
+        .from(schema.tripMembers)
+        .where(
+          and(
+            eq(schema.tripMembers.id, input.memberId),
+            // Scope to the trip, or a member id from someone else's trip works.
+            eq(schema.tripMembers.tripId, input.tripId),
+          ),
+        )
+        .limit(1);
+      if (!member?.email) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "That member has no email on file" });
+      }
+      const [trip] = await db.select().from(schema.trips).where(eq(schema.trips.id, input.tripId)).limit(1);
+      const href = member.userId
+        ? appUrl(`/trips/${input.tripId}`)
+        : appUrl(`/login?invite=${encodeURIComponent(member.email)}`);
+      const mail = await sendTripInvite({
+        to: member.email,
+        inviteeName: member.name,
+        inviterName: ctx.user.name ?? "A fellow traveller",
+        tripTitle: trip.title,
+        tripDates: formatTripDates(trip.startDate, trip.endDate),
+        role: member.role === "viewer" ? "viewer" : "editor",
+        href,
+      });
+      if (!mail.ok && mail.reason === "disabled") {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Email isn't configured on this deployment yet.",
+        });
+      }
+      return { ok: mail.ok };
     }),
 
   removeMember: authedQuery
@@ -1805,7 +1911,11 @@ export const tripRouter = createRouter({
       await requireEditor(input.tripId, ctx.user.id);
       const db = getDb();
       const [trip] = await db.select().from(schema.trips).where(eq(schema.trips.id, input.tripId)).limit(1);
-      const homeCents = convertCents(input.amountCents, input.currency, trip.homeCurrency);
+      // r27: live rates. homeCents is PERSISTED and drives every balance and
+      // settle-up figure on the trip, so converting it with a stale hardcoded
+      // table baked the error permanently into the ledger.
+      const { rates } = await getRates();
+      const homeCents = convertCents(input.amountCents, input.currency, trip.homeCurrency, rates);
       const result = await db.insert(schema.expenses).values({
         tripId: input.tripId,
         paidById: input.paidById,
@@ -1864,7 +1974,8 @@ export const tripRouter = createRouter({
         if (!existing) throw new TRPCError({ code: "NOT_FOUND", message: "Expense not found on this trip" });
         const amount = patch.amountCents ?? existing.amountCents;
         const currency = patch.currency ?? existing.currency;
-        (patch as Record<string, unknown>).homeCents = convertCents(amount, currency, trip.homeCurrency);
+        const { rates } = await getRates();
+        (patch as Record<string, unknown>).homeCents = convertCents(amount, currency, trip.homeCurrency, rates);
       }
       await db
         .update(schema.expenses)

@@ -21,6 +21,8 @@ import { getDb } from "./queries/connection";
 import { authedQuery, createRouter, publicQuery } from "./middleware";
 import {
   geocodeCity,
+  importCityPlaces,
+  reverseGeocodePoint,
   titleCase,
   type CityGeocode,
   type OverpassElement,
@@ -606,6 +608,41 @@ function nearbyKind(row: ExplorePlaceRow): string {
 }
 
 /**
+ * r27: below this many corpus rows inside the 150 km box, "Around me" is
+ * treated as uncovered and we try a live import rather than returning nothing.
+ */
+const MIN_AROUND_ME_ROWS = 10;
+
+/** Coalesced, never-throwing city import for the aroundMe fallback. */
+const aroundMeImports = new Map<string, Promise<boolean>>();
+
+async function tryImportNearby(city: string): Promise<boolean> {
+  const key = city.trim().toLowerCase();
+  const existing = aroundMeImports.get(key);
+  if (existing) return existing;
+  const p = (async () => {
+    try {
+      const res = await importCityPlaces(city);
+      return (res?.inserted ?? 0) > 0 || (res?.total ?? 0) > 0;
+    } catch (e) {
+      console.warn(`getaways: aroundMe import failed for "${city}"`, e);
+      return false;
+    } finally {
+      aroundMeImports.delete(key);
+    }
+  })();
+  aroundMeImports.set(key, p);
+  return p;
+}
+
+/** Photon reverse geocode, cached 30d upstream. Null when we can't name it. */
+async function cityNameFor(lat: number, lng: number): Promise<string | null> {
+  const rev = await reverseGeocodePoint(lat, lng);
+  const city = rev?.city?.trim();
+  return city ? city : null;
+}
+
+/**
  * The aroundMe computation: getaways within 150 km (≥12 km out - same band
  * as near) PLUS top-rated corpus places within ~40 km, preference-matched,
  * deduped, ranked by the rating×distance blend, with real OSRM drive times
@@ -621,20 +658,34 @@ async function computeAroundMe(input: {
 
   // One corpus scan over the 150 km bbox; lanes split by distance in JS.
   const b = radiusBbox(lat, lng, AROUND_ME_GETAWAY_KM);
-  const rows = await getDb()
-    .select()
-    .from(schema.explorePlaces)
-    .where(
-      and(
-        eq(schema.explorePlaces.approved, true),
-        gte(schema.explorePlaces.lat, b.s),
-        lte(schema.explorePlaces.lat, b.n),
-        gte(schema.explorePlaces.lng, b.w),
-        lte(schema.explorePlaces.lng, b.e),
-      ),
-    )
-    .orderBy(desc(schema.explorePlaces.rating))
-    .limit(1200);
+  const scanBbox = () =>
+    getDb()
+      .select()
+      .from(schema.explorePlaces)
+      .where(
+        and(
+          eq(schema.explorePlaces.approved, true),
+          gte(schema.explorePlaces.lat, b.s),
+          lte(schema.explorePlaces.lat, b.n),
+          gte(schema.explorePlaces.lng, b.w),
+          lte(schema.explorePlaces.lng, b.e),
+        ),
+      )
+      .orderBy(desc(schema.explorePlaces.rating))
+      .limit(1200);
+
+  let rows = await scanBbox();
+  // r27: on-demand import when the corpus has nothing near the user. Like the
+  // main explore feed, this rail had no live fallback - "Around me" was simply
+  // blank for anyone standing outside the seeded cities, which on a fresh
+  // database is everyone. Reverse-geocode to a city name and run the same free
+  // OSM importer the rest of the app uses.
+  if (rows.length < MIN_AROUND_ME_ROWS) {
+    const city = await cityNameFor(lat, lng);
+    if (city && (await tryImportNearby(city))) {
+      rows = await scanBbox();
+    }
+  }
 
   interface Cand {
     row: ExplorePlaceRow;

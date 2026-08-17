@@ -182,6 +182,71 @@ const LIGHT_COLUMNS = {
   feeCents: schema.explorePlaces.feeCents,
 } as const;
 
+/**
+ * r27: on-demand corpus filling.
+ *
+ * Below this many rows a city feed is treated as empty and we try an import.
+ * A handful of stray user submissions shouldn't count as coverage.
+ */
+const MIN_CITY_PLACES = 8;
+
+/**
+ * Cities used to bootstrap a completely empty corpus, chosen to cover the
+ * India-first audience plus enough of the rest of the world that the global
+ * feed doesn't look regional.
+ */
+const BOOTSTRAP_CITIES = ["Bengaluru", "Goa", "Jaipur", "Paris", "Bangkok", "Tokyo"];
+
+/** Guards against several concurrent feed loads all importing the same city. */
+const importsInFlight = new Map<string, Promise<boolean>>();
+let bootstrapAttemptedAt = 0;
+
+/** Import a city, coalesced and never throwing. Returns whether rows landed. */
+async function tryImportCity(city: string): Promise<boolean> {
+  const key = city.trim().toLowerCase();
+  const existing = importsInFlight.get(key);
+  if (existing) return existing;
+  const p = (async () => {
+    try {
+      const res = await importCityPlaces(city);
+      // `inserted` is new rows this run; `total` is the city's row count after
+      // the import. Either being non-zero means the feed has something to show
+      // (a city imported moments ago by a concurrent request inserts 0).
+      return (res?.inserted ?? 0) > 0 || (res?.total ?? 0) > 0;
+    } catch (e) {
+      // Overpass being slow or a city we can't geocode must degrade to an
+      // empty feed, not a 500 on the home page.
+      console.warn(`explore: on-demand import failed for "${city}"`, e);
+      return false;
+    } finally {
+      importsInFlight.delete(key);
+    }
+  })();
+  importsInFlight.set(key, p);
+  return p;
+}
+
+/**
+ * Fill a completely empty corpus. Imports the first starter city inline so the
+ * caller gets something back on this request, and continues with the rest in
+ * the background rather than making one unlucky user wait for six Overpass
+ * round-trips.
+ *
+ * Rate-limited to once every 10 minutes per process: if Overpass is down we
+ * must not hammer it on every page load.
+ */
+async function bootstrapCorpus(): Promise<void> {
+  if (Date.now() - bootstrapAttemptedAt < 10 * 60 * 1000) return;
+  bootstrapAttemptedAt = Date.now();
+  const [first, ...rest] = BOOTSTRAP_CITIES;
+  if (first) await tryImportCity(first);
+  void (async () => {
+    for (const city of rest) {
+      await tryImportCity(city);
+    }
+  })();
+}
+
 export const exploreRouter = createRouter({
   /** Personalized place feed - scores places by overlap with the taste profile. */
   list: authedQuery
@@ -231,7 +296,16 @@ export const exploreRouter = createRouter({
         // hydrated, single-flight). Only the caller's own submissions are
         // merged per request, exactly like the old pipeline merged them into
         // the corpus before scoring (stable ties keep corpus rows first).
-        const feed = await getGlobalFeed({ styles: [...userStyles], style: input?.style ?? null, maxPrice });
+        let feed = await getGlobalFeed({ styles: [...userStyles], style: input?.style ?? null, maxPrice });
+        // r27: EMPTY-CORPUS FALLBACK. On a fresh database this feed was simply
+        // blank - the main /explore page, the first thing a new user sees.
+        // CityBuilder and explore.discover already import on demand via
+        // importCityPlaces (OSM/Overpass, free, keyless); the main feed was the
+        // one surface with no such path, and nothing seeds at build or boot.
+        if (!feed.length) {
+          await bootstrapCorpus();
+          feed = await getGlobalFeed({ styles: [...userStyles], style: input?.style ?? null, maxPrice });
+        }
         // Own rows are scored on the fly, so they need the styles column
         // that FEED_COLUMNS trims; they are a handful per user at most.
         let hydrated: FeedPlace[];
@@ -256,10 +330,23 @@ export const exploreRouter = createRouter({
       // City feed: the city filter is pushed into SQL (r21-perf: a city feed
       // does not haul the whole corpus over the wire) and survivors are
       // hydrated by id below, keeping the response shape identical.
-      const places: LightPlace[] = await db
+      let places: LightPlace[] = await db
         .select(LIGHT_COLUMNS)
         .from(schema.explorePlaces)
         .where(and(placeVisibleTo(ctx.user.id), eq(schema.explorePlaces.city, input.city)));
+      // r27: same on-demand import for a city we simply don't have yet. A
+      // traveller searching a city outside the corpus got an empty page that
+      // looked like the app was broken, even though the importer that would
+      // have filled it was one function call away.
+      if (places.length < MIN_CITY_PLACES) {
+        const imported = await tryImportCity(input.city);
+        if (imported) {
+          places = await db
+            .select(LIGHT_COLUMNS)
+            .from(schema.explorePlaces)
+            .where(and(placeVisibleTo(ctx.user.id), eq(schema.explorePlaces.city, input.city)));
+        }
+      }
       const scored = places
         .filter((p) => !isGenericName(p.name)) // hide OSM placeholder names from the suggestion feed
         .map((p) => ({ ...p, ...scorePlace(p) }))

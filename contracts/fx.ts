@@ -1,4 +1,12 @@
-// Static FX table (units of currency per 1 USD). Shared by client + server.
+/**
+ * Static FX table (units of currency per 1 USD). Shared by client + server.
+ *
+ * r27: this is now the FALLBACK, not the only source. Live rates are fetched
+ * daily into the `fx_rates` table by api/lib/fx-refresh.ts and passed into
+ * convertCents() as the optional third argument. These numbers stay because
+ * an app that cannot reach a rates API must still be able to add up a trip
+ * budget - being slightly stale beats showing nothing.
+ */
 export const FX_PER_USD: Record<string, number> = {
   USD: 1,
   EUR: 0.92,
@@ -68,15 +76,27 @@ const ZERO_DECIMAL = new Set([
   // DISPLAYED rounded to ₹151, so the ledger and the receipt disagreed.
 ]);
 
-/** Convert amountCents from `from` currency to `to` currency using static rates. */
+/**
+ * Convert amountCents between currencies.
+ *
+ * `rates` is optional and defaults to the static table, so every existing
+ * caller keeps working unchanged. Server code that touches money a user will
+ * see - persisting an expense's homeCents above all - should pass the live
+ * rates from api/lib/fx-refresh.ts instead.
+ *
+ * A currency missing from the table falls back to a rate of 1 rather than
+ * throwing: a wrong-but-visible number the user can correct beats a crash in
+ * the middle of adding an expense.
+ */
 export function convertCents(
   amountCents: number,
   from: string,
   to: string,
+  rates: Record<string, number> = FX_PER_USD,
 ): number {
   if (from === to) return amountCents;
-  const fromRate = FX_PER_USD[from] ?? 1;
-  const toRate = FX_PER_USD[to] ?? 1;
+  const fromRate = rates[from] ?? FX_PER_USD[from] ?? 1;
+  const toRate = rates[to] ?? FX_PER_USD[to] ?? 1;
   return Math.round((amountCents / fromRate) * toRate);
 }
 

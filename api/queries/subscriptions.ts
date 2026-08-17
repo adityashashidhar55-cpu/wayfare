@@ -21,7 +21,26 @@ export async function getSubscription(userId: number) {
   return created[0]!;
 }
 
+/**
+ * The user's EFFECTIVE tier right now.
+ *
+ * r27: this used to be `status === "active" ? tier : "wanderer"`, which never
+ * looked at currentPeriodEnd. The column was written on every checkout and
+ * read by nothing, so a Voyager grant lasted forever - a subscription product
+ * that only ever charged once.
+ *
+ * A canceled subscription still returns voyager until the paid period ends:
+ * the customer paid through that date and revoking on the cancel click would
+ * be taking back time they own.
+ */
 export async function getTier(userId: number): Promise<TierName> {
   const sub = await getSubscription(userId);
-  return sub.status === "active" ? (sub.tier as TierName) : "wanderer";
+  if (sub.tier !== "voyager") return "wanderer";
+  if (sub.status !== "active" && sub.status !== "canceled") return "wanderer";
+  // No end date on an active row means a legacy/comped grant - honour it.
+  if (sub.status === "active" && !sub.currentPeriodEnd) return "voyager";
+  if (!sub.currentPeriodEnd) return "wanderer";
+  // Both sides are YYYY-MM-DD, so a lexicographic compare is a date compare.
+  // Inclusive: access lasts through the whole final day.
+  return sub.currentPeriodEnd >= new Date().toISOString().slice(0, 10) ? "voyager" : "wanderer";
 }

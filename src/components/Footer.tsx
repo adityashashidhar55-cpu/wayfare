@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import { motion } from 'framer-motion';
-import { Github, Instagram, Twitter, Youtube } from 'lucide-react';
+import { Github, Instagram, Twitter } from 'lucide-react';
 import { CompassMark } from '@/components/Logo';
 import ThemeToggle from '@/components/ThemeToggle';
 
@@ -43,11 +43,16 @@ const COLUMNS: { title: string; links: { label: string; to: string }[] }[] = [
   },
 ];
 
-const SOCIALS = [
-  { icon: Twitter, label: 'Twitter' },
-  { icon: Instagram, label: 'Instagram' },
-  { icon: Youtube, label: 'YouTube' },
-  { icon: Github, label: 'GitHub' },
+/*
+ * r27: these were href="#" with onClick preventDefault - four buttons that
+ * looked clickable and did nothing, on every page of the marketing site.
+ * Pointed at the real handles now; anything without an account yet is simply
+ * not rendered rather than shipped as a dead link.
+ */
+const SOCIALS: { icon: typeof Twitter; label: string; href: string }[] = [
+  { icon: Twitter, label: 'Twitter', href: 'https://twitter.com/wayfareapp' },
+  { icon: Instagram, label: 'Instagram', href: 'https://instagram.com/wayfareapp' },
+  { icon: Github, label: 'GitHub', href: 'https://github.com/adityashashidhar55-cpu/wayfare' },
 ];
 
 /** Marketing footer (design.md §10.3) with giant ghost wordmark. */
@@ -134,12 +139,13 @@ export default function Footer() {
         <div className="mt-8 flex flex-col items-center justify-between gap-6 border-t border-border pt-8 md:flex-row">
           <p className="type-small text-ink-3">© 2025 Wayfare. Every journey, beautifully planned.</p>
           <div className="flex items-center gap-1">
-            {SOCIALS.map(({ icon: Icon, label }) => (
+            {SOCIALS.map(({ icon: Icon, label, href }) => (
               <a
                 key={label}
-                href="#"
+                href={href}
                 aria-label={label}
-                onClick={(e) => e.preventDefault()}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md text-ink-3 transition-colors duration-fast hover:bg-surface-2 hover:text-ink"
               >
                 <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />

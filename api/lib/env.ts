@@ -37,7 +37,33 @@ export const env = {
   // Optional Google Maps Platform browser key (Maps JS / Places) - when set,
   // the frontend upgrades map search + offers Google tile layers.
   googleMapsKey: process.env.GOOGLE_MAPS_API_KEY ?? "",
+
+  // ── r27: outbound email (Resend) ──────────────────────────────────────────
+  // Optional. Unset means the mailer reports `disabled` and logs what it would
+  // have sent; invites and password resets still create their DB rows, so the
+  // app degrades rather than breaking. See api/lib/mailer.ts.
+  resendApiKey: process.env.RESEND_API_KEY ?? "",
+  // Must be a verified sender on the Resend domain, e.g. "Wayfare <hello@wayfare.app>".
+  mailFrom: process.env.MAIL_FROM ?? "",
+  // Public origin used to build links inside emails and payment callbacks.
+  // Without this, invite links point at localhost in production.
+  appUrl: process.env.APP_URL ?? "",
+
+  // ── r27: payments (Razorpay) ──────────────────────────────────────────────
+  // Razorpay rather than Stripe: this is an India-first product and Stripe
+  // still does not support UPI, which is how most Indian customers actually
+  // pay. Optional - unset means billing.checkout refuses honestly instead of
+  // silently granting a free upgrade the way the old mock did.
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID ?? "",
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET ?? "",
+  // Separate secret configured on the Razorpay webhook, NOT the API secret.
+  razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET ?? "",
 };
+
+/** True when Razorpay can actually create and verify orders. */
+export function paymentsEnabled(): boolean {
+  return Boolean(env.razorpayKeyId && env.razorpayKeySecret);
+}
 
 /** True only when both Kimi OAuth endpoints are configured with valid URLs. */
 export function kimiAuthEnabled(): boolean {

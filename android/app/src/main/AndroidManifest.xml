@@ -38,4 +38,29 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+      r27: location. The app calls navigator.geolocation in six places (Around
+      me, arrival watch / travel mode, the map's "locate me", getaways, city
+      builder, nearby search) and this manifest declared only INTERNET, so on
+      Android every one of those silently failed - the WebView cannot obtain a
+      fix without the permission being declared here first.
+
+      COARSE is requested alongside FINE deliberately: "getaways within ~2
+      hours" and "places around me" work perfectly at neighbourhood accuracy,
+      and on Android 12+ the user can grant approximate location only. Asking
+      for FINE alone means that choice denies the feature outright.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!--
+      Declared optional so the Play Store does not filter the app off devices
+      without GPS hardware. Every location feature degrades to manual city
+      entry, so a tablet without a GPS chip is still a perfectly usable
+      install.
+    -->
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
 </manifest>

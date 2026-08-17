@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as schema from "@db/schema";
@@ -14,6 +14,21 @@ import { verdictFor } from "./lib/verdict";
 import { authedQuery, createRouter, publicQuery } from "./middleware";
 
 type PostWithAuthor = schema.Post & { authorName: string | null; authorAvatar: string | null };
+
+/**
+ * Decode a "<likes>:<id>" feed cursor. Anything malformed is treated as no
+ * cursor (first page) rather than an error - a stale or hand-edited cursor
+ * should show the user the top of the feed, not a 400.
+ */
+function parseFeedCursor(cursor: string | null | undefined): { likes: number; id: number } | null {
+  if (!cursor) return null;
+  const m = /^(\d{1,10}):(\d{1,15})$/.exec(cursor);
+  if (!m) return null;
+  const likes = Number(m[1]);
+  const id = Number(m[2]);
+  if (!Number.isSafeInteger(likes) || !Number.isSafeInteger(id)) return null;
+  return { likes, id };
+}
 
 /** Places newly auto-attached on publish - reported back so the editor can note them. */
 interface AutoAttachedPlace {
@@ -356,16 +371,62 @@ export const journalRouter = createRouter({
     };
   }),
 
-  /** Public community feed - published posts only, most-loved first. */
-  feed: publicQuery.query(async () => {
-    const db = getDb();
-    const rows = await db
-      .select()
-      .from(schema.posts)
-      .where(eq(schema.posts.status, "published"))
-      .orderBy(desc(schema.posts.likes), desc(schema.posts.updatedAt));
-    return { posts: await withAuthors(rows) };
-  }),
+  /**
+   * Public community feed - published posts only, most-loved first.
+   *
+   * r27: PAGINATED. This used to select every published post with no LIMIT at
+   * all and hydrate an author for each one, so the response grew without bound
+   * with the community and the page got slower for everyone on every new post.
+   *
+   * Keyset pagination on (likes DESC, id DESC) rather than OFFSET: it stays
+   * O(page) as the table grows, and it doesn't skip or duplicate rows when
+   * someone likes a post between two page loads the way OFFSET does.
+   *
+   * `cursor` is opaque to the client - pass back whatever nextCursor was.
+   */
+  feed: publicQuery
+    // Not `.optional()`: tRPC's useInfiniteQuery infers the page param from a
+    // top-level `cursor` key, and wrapping the whole object in optional()
+    // hides it from that inference.
+    .input(
+      z.object({
+        limit: z.number().int().min(1).max(50).default(20),
+        cursor: z.string().max(64).nullish(),
+      }),
+    )
+    .query(async ({ input }) => {
+      const db = getDb();
+      const limit = input.limit;
+      const after = parseFeedCursor(input.cursor);
+
+      const rows = await db
+        .select()
+        .from(schema.posts)
+        .where(
+          after
+            ? and(
+                eq(schema.posts.status, "published"),
+                // Strictly "after" the cursor in (likes DESC, id DESC) order.
+                or(
+                  lt(schema.posts.likes, after.likes),
+                  and(eq(schema.posts.likes, after.likes), lt(schema.posts.id, after.id)),
+                ),
+              )
+            : eq(schema.posts.status, "published"),
+        )
+        .orderBy(desc(schema.posts.likes), desc(schema.posts.id))
+        // One extra row tells us whether another page exists without a
+        // second COUNT query.
+        .limit(limit + 1);
+
+      const hasMore = rows.length > limit;
+      const page = hasMore ? rows.slice(0, limit) : rows;
+      const last = page[page.length - 1];
+      return {
+        posts: await withAuthors(page),
+        nextCursor: hasMore && last ? `${last.likes}:${last.id}` : null,
+      };
+    }),
 
   /**
    * Public read: published posts are viewable by anyone (signed-in or not);

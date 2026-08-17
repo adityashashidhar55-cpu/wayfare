@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import * as cookie from "cookie";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
@@ -7,6 +8,7 @@ import { createRouter, authedQuery, publicQuery } from "./middleware";
 import { signSessionToken } from "./kimi/session";
 import { env } from "./lib/env";
 import { hashPassword, verifyPassword } from "./lib/passwords";
+import { appUrl, sendPasswordChanged, sendPasswordReset } from "./lib/mailer";
 import {
   countReferrals,
   findUserIdByReferralCode,
@@ -43,6 +45,40 @@ function recordFailedLoginAttempt(email: string): void {
   } else {
     entry.count += 1;
   }
+}
+
+/**
+ * r27: password-reset request throttle. Separate from the login limiter -
+ * this one guards against using the endpoint as a free mail cannon aimed at
+ * someone else's inbox, so it counts REQUESTS, not failures.
+ */
+const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000; // 1 hour
+const RESET_WINDOW_MS = 15 * 60 * 1000;
+const RESET_MAX = 3;
+const resetRequests = new Map<string, { count: number; firstAt: number }>();
+
+function isResetRateLimited(email: string): boolean {
+  const entry = resetRequests.get(email);
+  if (!entry) return false;
+  if (Date.now() - entry.firstAt > RESET_WINDOW_MS) {
+    resetRequests.delete(email);
+    return false;
+  }
+  return entry.count >= RESET_MAX;
+}
+
+function recordResetRequest(email: string): void {
+  const now = Date.now();
+  const entry = resetRequests.get(email);
+  if (!entry || now - entry.firstAt > RESET_WINDOW_MS) {
+    resetRequests.set(email, { count: 1, firstAt: now });
+  } else {
+    entry.count += 1;
+  }
+}
+
+function sha256Hex(v: string): string {
+  return createHash("sha256").update(v).digest("hex");
 }
 
 // Lazily-built hash of a random non-password, used to keep unknown-email
@@ -306,6 +342,124 @@ export const authRouter = createRouter({
         passwordHash: null,
         upgradedFromGuest: isGuestCaller && !existing,
       };
+    }),
+
+  /**
+   * r27: PASSWORD RESET, step 1 - request a link.
+   *
+   * ALWAYS returns { ok: true }, whether or not the email exists. Reporting
+   * "no such account" here would turn this into an account-enumeration oracle,
+   * which is exactly what loginWithPassword goes out of its way to avoid with
+   * its dummy-hash timing defence.
+   *
+   * Only the SHA-256 of the token is persisted, so a leak of password_resets
+   * yields nothing usable.
+   */
+  requestPasswordReset: publicQuery
+    .input(z.object({ email: z.string().email().max(320) }))
+    .mutation(async ({ input }) => {
+      const email = input.email.trim().toLowerCase();
+      const generic = { ok: true as const };
+
+      if (isResetRateLimited(email)) return generic;
+      recordResetRequest(email);
+
+      const user = await findUserByEmail(email);
+      // A guest row or an OAuth-only account has no password to reset, but we
+      // still answer identically.
+      if (!user?.email) return generic;
+
+      const db = getDb();
+      const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+      const expiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+
+      // Invalidate any outstanding link for this user, so requesting a second
+      // one silently retires the first.
+      await db
+        .update(schema.passwordResets)
+        .set({ usedAt: new Date() })
+        .where(
+          and(
+            eq(schema.passwordResets.userId, user.id),
+            isNull(schema.passwordResets.usedAt),
+          ),
+        );
+      await db.insert(schema.passwordResets).values({
+        userId: user.id,
+        tokenHash: sha256Hex(token),
+        expiresAt,
+      });
+
+      await sendPasswordReset({
+        to: user.email,
+        name: user.name,
+        href: appUrl(`/login?reset=${token}`),
+        expiresMinutes: Math.round(PASSWORD_RESET_TTL_MS / 60000),
+      });
+      return generic;
+    }),
+
+  /**
+   * r27: PASSWORD RESET, step 2 - redeem the link and set a new password.
+   *
+   * The token row is claimed with a conditional UPDATE that matches only rows
+   * still unused, and the affected-row count decides whether we proceed. A
+   * read-then-write would let two concurrent redemptions of the same link both
+   * pass, which is the same TOCTOU shape the token ledger was fixed for.
+   */
+  resetPassword: publicQuery
+    .input(
+      z.object({
+        token: z.string().min(32).max(128),
+        password: z.string().min(10).max(200),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const db = getDb();
+      const tokenHash = sha256Hex(input.token);
+      const [row] = await db
+        .select()
+        .from(schema.passwordResets)
+        .where(eq(schema.passwordResets.tokenHash, tokenHash))
+        .limit(1);
+
+      const invalid = new TRPCError({
+        code: "BAD_REQUEST",
+        message: "That reset link is invalid or has expired. Request a new one.",
+      });
+      if (!row || row.usedAt || row.expiresAt.getTime() < Date.now()) throw invalid;
+
+      // Claim it. `affectedRows` (mysql2), not `rowsAffected` - getDb() is
+      // drizzle-orm/mysql2 and "planetscale" is only a dialect flag.
+      const claim = await db
+        .update(schema.passwordResets)
+        .set({ usedAt: new Date() })
+        .where(
+          and(
+            eq(schema.passwordResets.id, row.id),
+            isNull(schema.passwordResets.usedAt),
+          ),
+        );
+      const claimed = Number((claim as unknown as [{ affectedRows?: number }])[0]?.affectedRows ?? 0);
+      if (claimed < 1) throw invalid;
+
+      const passwordHash = await hashPassword(input.password);
+      await db
+        .update(schema.users)
+        .set({ passwordHash })
+        .where(eq(schema.users.id, row.userId));
+
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, row.userId))
+        .limit(1);
+      // Clear the failed-login counter so a locked-out user can sign in at once.
+      if (user?.email) {
+        loginAttempts.delete(user.email.toLowerCase());
+        await sendPasswordChanged({ to: user.email, name: user.name });
+      }
+      return { ok: true };
     }),
 
   /** Is this session a throwaway guest? Drives the "save your trips" nudge. */

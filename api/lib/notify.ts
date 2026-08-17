@@ -8,7 +8,11 @@ import * as schema from "@db/schema";
 import { getDb } from "../queries/connection";
 
 export interface NotificationInput {
-  kind: "weather" | "travel" | "wishlist" | "tokens" | "reward";
+  // r27: "invite" added. addMember created a pending membership and notified
+  // nobody through any channel - no email, and no bell either, so even an
+  // invitee who already had an account saw nothing until they happened to
+  // open their Trips page.
+  kind: "weather" | "travel" | "wishlist" | "tokens" | "reward" | "invite";
   title: string;
   body?: string;
   tripId?: number;

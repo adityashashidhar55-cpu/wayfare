@@ -63,7 +63,8 @@ function StoryCard({ post }: { post: JournalPostItem }) {
 }
 
 export default function FromJournal() {
-  const feedQ = trpc.journal.feed.useQuery(undefined, { retry: false });
+  /* r27: ask for one page, not the whole feed - this strip shows three cards. */
+  const feedQ = trpc.journal.feed.useQuery({ limit: 12 }, { retry: false });
 
   /* Latest three published stories (feed arrives like-sorted - re-sort by date). */
   const posts = useMemo(

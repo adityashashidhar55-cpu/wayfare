@@ -183,15 +183,22 @@ export default function Journal() {
   const [tab, setTab] = useState<TabKey>('mine');
   const [importOpen, setImportOpen] = useState(false);
   const listQ = trpc.journal.list.useQuery();
-  const feedQ = trpc.journal.feed.useQuery();
+  /* r27: the community feed is paginated (keyset on likes+id) - it used to
+     fetch every published post on every visit. */
+  const feedQ = trpc.journal.feed.useInfiniteQuery(
+    { limit: 20 },
+    { getNextPageParam: (last) => last.nextCursor ?? undefined },
+  );
 
   const mine = listQ.data?.mine ?? [];
   /* Community: most-loved first, then freshest (client-side safety sort) */
   const community = useMemo(
     () =>
-      [...(feedQ.data?.posts ?? [])].sort(
-        (a, b) => b.likes - a.likes || new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-      ),
+      (feedQ.data?.pages ?? [])
+        .flatMap((p) => p.posts)
+        .sort(
+          (a, b) => b.likes - a.likes || new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        ),
     [feedQ.data],
   );
   const shown = tab === 'mine' ? mine : community;
@@ -287,11 +294,26 @@ export default function Journal() {
               {shown.length === 0 ? (
                 <EmptyJournal tab={tab} onImport={() => setImportOpen(true)} />
               ) : (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {shown.map((post, i) => (
-                    <PostCard key={post.id} post={post} showAuthor={tab === 'community'} index={i} />
-                  ))}
-                </div>
+                <>
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {shown.map((post, i) => (
+                      <PostCard key={post.id} post={post} showAuthor={tab === 'community'} index={i} />
+                    ))}
+                  </div>
+                  {/* r27: the community feed is paged - pull the next page on
+                      demand instead of shipping every published post at once. */}
+                  {tab === 'community' && feedQ.hasNextPage && (
+                    <div className="mt-8 flex justify-center">
+                      <Button
+                        variant="secondary"
+                        onClick={() => void feedQ.fetchNextPage()}
+                        disabled={feedQ.isFetchingNextPage}
+                      >
+                        {feedQ.isFetchingNextPage ? 'Loading…' : 'Load more stories'}
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </motion.div>
           </AnimatePresence>

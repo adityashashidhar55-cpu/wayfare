@@ -17,6 +17,11 @@ import {
 import { Paths } from "@contracts/constants";
 import { handleInboundEmail } from "./bookings-router";
 import { getPlaceNarration, NarrationError } from "./lib/narration";
+import { eq } from "drizzle-orm";
+import * as schema from "@db/schema";
+import { getDb } from "./queries/connection";
+import { verifyWebhookSignature } from "./lib/razorpay";
+import { activateVoyager, markPaymentFailed } from "./lib/entitlement";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -41,6 +46,77 @@ app.get("/api/oauth/google/start", googleStart);
 app.get("/api/oauth/google/callback", googleCallback);
 app.get("/api/oauth/apple/start", appleStart);
 app.post("/api/oauth/apple/callback", appleCallback);
+/**
+ * r27: Razorpay payment webhook - the AUTHORITATIVE activation path.
+ *
+ * The client `billing.confirm` handoff only fires if the browser survives the
+ * redirect back from the payment page. Plenty of real payments finish after
+ * the user has closed the tab, switched to their UPI app and never come back;
+ * without this endpoint those customers pay and get nothing.
+ *
+ * The signature is HMAC-SHA256 over the RAW body with RAZORPAY_WEBHOOK_SECRET
+ * (a different secret from the API key). We must read the body as text and
+ * verify BEFORE parsing - re-serialising parsed JSON changes the bytes and the
+ * HMAC would never match.
+ */
+app.post("/api/webhooks/razorpay", async (c) => {
+  const signature = c.req.header("x-razorpay-signature") ?? "";
+  const raw = await c.req.text();
+  if (!verifyWebhookSignature(raw, signature)) {
+    // 400, not 401: Razorpay retries on 5xx, and a bad signature will never
+    // become good on retry.
+    return c.json({ error: "invalid signature" }, 400);
+  }
+
+  let payload: RazorpayWebhookPayload;
+  try {
+    payload = JSON.parse(raw) as RazorpayWebhookPayload;
+  } catch {
+    return c.json({ error: "invalid payload" }, 400);
+  }
+
+  const entity = payload.payload?.payment?.entity;
+  const orderId = entity?.order_id;
+  if (!orderId) return c.json({ ok: true, ignored: payload.event ?? "unknown" });
+
+  try {
+    const db = getDb();
+    const [row] = await db
+      .select()
+      .from(schema.payments)
+      .where(eq(schema.payments.orderId, orderId))
+      .limit(1);
+    if (!row) return c.json({ ok: true, ignored: "unknown order" });
+
+    if (payload.event === "payment.captured" || entity?.status === "captured") {
+      await activateVoyager({
+        userId: row.userId,
+        orderId,
+        paymentId: entity?.id ?? "",
+        interval: row.interval,
+        source: "webhook",
+        raw: entity,
+      });
+    } else if (payload.event === "payment.failed") {
+      await markPaymentFailed(orderId, entity);
+    }
+    return c.json({ ok: true });
+  } catch (e) {
+    console.error("razorpay webhook", e);
+    // 500 so Razorpay retries - a transient DB blip must not lose a payment.
+    return c.json({ error: "processing failed" }, 500);
+  }
+});
+
+interface RazorpayWebhookPayload {
+  event?: string;
+  payload?: {
+    payment?: {
+      entity?: { id?: string; order_id?: string; status?: string };
+    };
+  };
+}
+
 // Inbound booking-email webhook (r9-bookings): SendGrid Inbound Parse /
 // Mailgun Routes compatible - point the in.wayfare.app MX here and forwarded
 // confirmations land on the token owner's active trip as reservations + stops.

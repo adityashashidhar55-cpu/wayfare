@@ -630,7 +630,7 @@ export const notifications = mysqlTable(
   {
     id: serial("id").primaryKey(),
     userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
-    kind: varchar("kind", { length: 32 }).notNull(), // weather | travel | wishlist | tokens | reward
+    kind: varchar("kind", { length: 32 }).notNull(), // weather | travel | wishlist | tokens | reward | invite
     title: varchar("title", { length: 255 }).notNull(),
     body: text("body"),
     tripId: bigint("tripId", { mode: "number", unsigned: true }),
@@ -674,6 +674,89 @@ export const tokenEvents = mysqlTable(
   ],
 );
 export type TokenEvent = typeof tokenEvents.$inferSelect;
+
+/**
+ * r27: one-time password reset tokens.
+ *
+ * Only the SHA-256 of the token is stored, so a database leak does not hand
+ * an attacker working reset links - the same reason passwordHash exists
+ * rather than a password column. `usedAt` makes a token single-use; rows are
+ * swept opportunistically rather than by cron.
+ */
+export const passwordResets = mysqlTable(
+  "password_resets",
+  {
+    id: serial("id").primaryKey(),
+    userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
+    tokenHash: varchar("tokenHash", { length: 64 }).notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    usedAt: timestamp("usedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => [
+    uniqueIndex("uq_password_reset_token").on(t.tokenHash),
+    index("idx_password_reset_user").on(t.userId, t.id),
+  ],
+);
+export type PasswordReset = typeof passwordResets.$inferSelect;
+
+/**
+ * r27: Razorpay payment records.
+ *
+ * The subscriptions table holds the CURRENT entitlement; this table is the
+ * audit trail of how it got there. Every row starts as `created` when the
+ * client asks for an order and only becomes `paid` when a signature-verified
+ * webhook (or a signature-verified client handoff) confirms it. Nothing here
+ * trusts the browser - the old mock flipped the tier on an unauthenticated
+ * client call, which meant anyone could grant themselves Voyager.
+ */
+export const payments = mysqlTable(
+  "payments",
+  {
+    id: serial("id").primaryKey(),
+    userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
+    provider: varchar("provider", { length: 24 }).default("razorpay").notNull(),
+    orderId: varchar("orderId", { length: 64 }).notNull(),
+    paymentId: varchar("paymentId", { length: 64 }),
+    // Integer minor units, matching the rest of the money code.
+    amount: int("amount").notNull(),
+    currency: varchar("currency", { length: 8 }).notNull(),
+    // Named billingInterval, not interval: INTERVAL is a reserved word in
+    // MySQL and an unquoted reference in any hand-written SQL would be a
+    // syntax error waiting to happen.
+    interval: mysqlEnum("billingInterval", ["monthly", "yearly"]).notNull(),
+    status: mysqlEnum("status", ["created", "paid", "failed", "refunded"])
+      .default("created")
+      .notNull(),
+    // Full provider payload for reconciliation and disputes.
+    raw: text("raw"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt")
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("uq_payment_order").on(t.orderId),
+    index("idx_payment_user").on(t.userId, t.id),
+  ],
+);
+export type Payment = typeof payments.$inferSelect;
+
+/**
+ * r27: cached FX rates.
+ *
+ * contracts/fx.ts ships a static table that was converting real money with no
+ * refresh path - the INR rate alone drifted far enough to misreport a shared
+ * expense. That table stays as the offline fallback; this holds the daily
+ * refresh so the server can serve live rates and the client can cache them.
+ */
+export const fxRates = mysqlTable("fx_rates", {
+  code: varchar("code", { length: 8 }).primaryKey(),
+  perUsd: double("perUsd").notNull(),
+  fetchedAt: timestamp("fetchedAt").defaultNow().notNull(),
+});
+export type FxRate = typeof fxRates.$inferSelect;
 
 /** Virtual rewards shelf - redeemed against the token balance. */
 export const rewardsRedeemed = mysqlTable(

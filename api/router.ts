@@ -26,6 +26,7 @@ import { mapsRouter } from "./maps-router"; // r24-smart
 import { wishlistRouter } from "./wishlist-router"; // r24-smart
 import { tokensRouter } from "./tokens-router"; // r24-smart
 import { travelRouter } from "./travel-router"; // r24-smart
+import { fxRouter } from "./fx-router"; // r27: live exchange rates
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -58,6 +59,7 @@ export const appRouter = createRouter({
   wishlist: wishlistRouter, // r24-smart
   tokens: tokensRouter, // r24-smart
   travel: travelRouter, // r24-smart
+  fx: fxRouter, // r27: live exchange rates
 });
 
 export type AppRouter = typeof appRouter;
