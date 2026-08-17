@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
-import { CreditCard, Crown, Lock } from 'lucide-react';
+import { Crown, Lock, ShieldCheck } from 'lucide-react';
 import { priceForBrowser } from '@contracts/premium';
 import { trpc } from '@/providers/trpc';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,58 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from '@/components/expenses/toast';
 
 export type BillingInterval = 'monthly' | 'yearly';
+
+/**
+ * r27: REAL CHECKOUT.
+ *
+ * This modal used to render fake card fields prefilled with 4242 4242 4242
+ * 4242 and a note admitting "no card is ever charged". Submitting it called
+ * billing.checkout, which granted Voyager for free.
+ *
+ * Now it hands off to Razorpay Checkout. Card details are entered in
+ * Razorpay's own hosted overlay and never touch this app or its DOM, which is
+ * both the only PCI-sane design and the reason the card inputs below are gone
+ * rather than rewired.
+ *
+ * Flow: billing.createOrder (server prices it) -> Razorpay overlay -> their
+ * handler returns a signature -> billing.confirm verifies it server-side. The
+ * webhook at /api/webhooks/razorpay is the authoritative path and completes
+ * the upgrade even if the user closes this tab mid-payment.
+ */
+
+/** Minimal shape of the global the Razorpay script installs. */
+interface RazorpayHandlerResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+interface RazorpayInstance {
+  open: () => void;
+  on: (event: string, cb: (e: unknown) => void) => void;
+}
+type RazorpayCtor = new (options: Record<string, unknown>) => RazorpayInstance;
+
+const RAZORPAY_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
+
+/** Load Razorpay's script once, on demand. Resolves false if it can't load. */
+function loadRazorpay(): Promise<RazorpayCtor | null> {
+  const w = window as unknown as { Razorpay?: RazorpayCtor };
+  if (w.Razorpay) return Promise.resolve(w.Razorpay);
+  return new Promise((resolve) => {
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${RAZORPAY_SCRIPT}"]`);
+    if (existing) {
+      existing.addEventListener('load', () => resolve(w.Razorpay ?? null), { once: true });
+      existing.addEventListener('error', () => resolve(null), { once: true });
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = RAZORPAY_SCRIPT;
+    s.async = true;
+    s.onload = () => resolve(w.Razorpay ?? null);
+    s.onerror = () => resolve(null);
+    document.body.appendChild(s);
+  });
+}
 
 /** Deterministic pseudo-random from an index (lint-pure, stable per burst). */
 function hash01(i: number, salt: number): number {
@@ -84,7 +136,6 @@ function SuccessMark() {
   );
 }
 
-/** Mock checkout modal (pricing.md §S2) - demo only, no real payment. */
 export function CheckoutModal({
   open,
   onOpenChange,
@@ -97,13 +148,13 @@ export function CheckoutModal({
   const navigate = useNavigate();
   const utils = trpc.useUtils();
   const [phase, setPhase] = useState<'form' | 'loading' | 'success'>('form');
-  const [card, setCard] = useState('4242 4242 4242 4242');
-  const [expiry, setExpiry] = useState('12 / 28');
-  const [cvc, setCvc] = useState('424');
 
   const price = priceForBrowser()[interval];
+  const statusQ = trpc.billing.status.useQuery(undefined, { retry: false });
+  const paymentsLive = statusQ.data?.paymentsEnabled ?? false;
 
-  const checkout = trpc.billing.checkout.useMutation({
+  const createOrder = trpc.billing.createOrder.useMutation();
+  const confirm = trpc.billing.confirm.useMutation({
     onSuccess: () => {
       setPhase('success');
       void utils.billing.status.invalidate();
@@ -112,26 +163,63 @@ export function CheckoutModal({
     },
     onError: (e) => {
       setPhase('form');
-      toast(e.message || 'Checkout failed', { tone: 'danger' });
+      // The webhook still settles this server-side, so tell the truth rather
+      // than implying the payment was lost.
+      toast(
+        e.message || "We couldn't verify that payment here. If you were charged it will apply shortly.",
+        { tone: 'danger' },
+      );
     },
   });
 
-  const startTrial = () => {
+  const pay = async () => {
     setPhase('loading');
-    // 900ms processing beat per pricing.md, then the mock checkout resolves.
-    setTimeout(() => checkout.mutate({ interval }), 900);
+    try {
+      const order = await createOrder.mutateAsync({ interval });
+      const Razorpay = await loadRazorpay();
+      if (!Razorpay) {
+        setPhase('form');
+        toast('Could not reach the payment provider. Check your connection and try again.', {
+          tone: 'danger',
+        });
+        return;
+      }
+      const rzp = new Razorpay({
+        key: order.keyId,
+        order_id: order.orderId,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Wayfare',
+        description: `Voyager · ${interval} · ${order.label}`,
+        handler: (res: RazorpayHandlerResponse) => {
+          confirm.mutate({
+            orderId: res.razorpay_order_id,
+            paymentId: res.razorpay_payment_id,
+            signature: res.razorpay_signature,
+          });
+        },
+        modal: {
+          // The user dismissed the overlay without paying. Not an error.
+          ondismiss: () => setPhase('form'),
+        },
+        theme: { color: '#BC5934' },
+      });
+      rzp.on('payment.failed', () => {
+        setPhase('form');
+        toast('That payment did not go through. Nothing was charged.', { tone: 'danger' });
+      });
+      rzp.open();
+    } catch (e) {
+      setPhase('form');
+      const message = e instanceof Error ? e.message : 'Could not start that payment';
+      toast(message, { tone: 'danger' });
+    }
   };
 
   const close = (v: boolean) => {
     onOpenChange(v);
     if (!v) setTimeout(() => setPhase('form'), 300);
   };
-
-  const formatCard = (v: string) =>
-    v
-      .replace(/\D/g, '')
-      .slice(0, 16)
-      .replace(/(\d{4})(?=\d)/g, '$1 ');
 
   return (
     <Dialog open={open} onOpenChange={close}>
@@ -143,8 +231,7 @@ export function CheckoutModal({
               Welcome aboard, Voyager <span className="text-brand">✳︎</span>
             </h3>
             <p className="type-body max-w-[38ch] text-ink-2">
-              Route optimization, email import, offline maps and PDF exports are unlocked, go put
-              them to work.
+              Route optimization, email import and PDF exports are unlocked, go put them to work.
             </p>
             <Button
               size="lg"
@@ -171,76 +258,46 @@ export function CheckoutModal({
             <div className="mt-5 flex items-center justify-between rounded-md border border-border bg-surface-2/60 px-4 py-3">
               <div>
                 <div className="type-small font-semibold text-ink">Voyager</div>
-                <div className="type-caption capitalize text-ink-3">
-                  {interval} billing · 7-day free trial
-                </div>
+                <div className="type-caption capitalize text-ink-3">{interval} billing</div>
               </div>
               <div className="tnum text-[18px] font-semibold text-ink">{price.label}</div>
             </div>
 
-            {/* Card cluster (demo placeholder fields) */}
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center gap-2 rounded-md border border-border-strong bg-surface px-3 transition-colors focus-within:border-brand">
-                <CreditCard className="h-4 w-4 shrink-0 text-ink-3" strokeWidth={1.75} />
-                <input
-                  value={card}
-                  onChange={(e) => setCard(formatCard(e.target.value))}
-                  inputMode="numeric"
-                  aria-label="Card number"
-                  className="tnum type-body h-11 w-full bg-transparent text-ink outline-none placeholder:text-ink-3"
-                  placeholder="4242 4242 4242 4242"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  value={expiry}
-                  onChange={(e) => setExpiry(e.target.value.slice(0, 7))}
-                  inputMode="numeric"
-                  aria-label="Expiry"
-                  className="tnum type-body h-11 rounded-md border border-border-strong bg-surface px-3 text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-brand"
-                  placeholder="MM / YY"
-                />
-                <input
-                  value={cvc}
-                  onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                  inputMode="numeric"
-                  aria-label="CVC"
-                  className="tnum type-body h-11 rounded-md border border-border-strong bg-surface px-3 text-ink outline-none transition-colors placeholder:text-ink-3 focus:border-brand"
-                  placeholder="CVC"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={startTrial}
-                  className="type-small flex h-10 items-center justify-center rounded-md bg-ink font-semibold text-bg transition-transform duration-fast hover:-translate-y-px active:scale-[0.97]"
-                >
-                  Apple Pay
-                </button>
-                <button
-                  type="button"
-                  onClick={startTrial}
-                  className="type-small flex h-10 items-center justify-center rounded-md border border-border-strong bg-surface font-semibold text-ink transition-all duration-fast hover:-translate-y-px hover:bg-surface-2 active:scale-[0.97]"
-                >
-                  Google Pay
-                </button>
-              </div>
+            <div className="mt-4 rounded-md border border-border bg-surface-2/40 px-4 py-3">
+              <p className="type-small flex items-center gap-2 text-ink-2">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-pine" strokeWidth={1.75} />
+                Pay by UPI, card, netbanking or wallet.
+              </p>
+              <p className="type-caption mt-1.5 text-ink-3">
+                Payment is handled by Razorpay in their own secure window. Wayfare never sees or
+                stores your card details.
+              </p>
             </div>
+
+            {!paymentsLive && (
+              <p className="type-caption mt-3 rounded-md bg-ochre-soft px-3 py-2 text-ink-2">
+                Payments aren't switched on for this deployment yet, so checkout will not complete.
+              </p>
+            )}
 
             <p className="type-caption mt-3 flex items-center justify-center gap-1.5 text-center text-ink-3">
               <Lock className="h-3 w-3" strokeWidth={1.75} />
-              This is a demo checkout, no card is ever charged.
+              Cancel any time. Access runs to the end of the period you've paid for.
             </p>
 
             <div className="mt-5 flex items-center justify-end gap-2">
               <Button variant="ghost" onClick={() => close(false)} disabled={phase === 'loading'}>
                 Cancel
               </Button>
-              <Button onClick={startTrial} disabled={phase === 'loading'} className="min-w-[140px]">
+              <Button
+                onClick={() => void pay()}
+                disabled={phase === 'loading' || !paymentsLive}
+                className="min-w-[140px]"
+              >
                 {phase === 'loading' ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-ink/40 border-t-brand-ink" />
                 ) : (
-                  'Start trial'
+                  `Pay ${price.label}`
                 )}
               </Button>
             </div>

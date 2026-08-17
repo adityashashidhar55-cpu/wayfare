@@ -39,9 +39,15 @@ export interface RazorpayOrder {
 }
 
 export class PaymentProviderError extends Error {
-  constructor(message: string, readonly status?: number) {
+  // Declared and assigned explicitly rather than as a constructor parameter
+  // property: tsconfig sets `erasableSyntaxOnly`, which bans the shorthand
+  // because it emits runtime code that a type-stripping loader cannot produce.
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
     super(message);
     this.name = "PaymentProviderError";
+    this.status = status;
   }
 }
 

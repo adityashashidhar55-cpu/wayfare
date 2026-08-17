@@ -34,13 +34,11 @@ const SECTIONS: Section[] = [
     title: 'Import & offline',
     rows: [
       { feature: 'Email import', wanderer: { kind: 'dash' }, voyager: { kind: 'check' } },
-      { feature: 'Offline maps', wanderer: { kind: 'dash' }, voyager: { kind: 'check' } },
+      // r27: "Offline maps" and unlimited "Attachments" removed. r26 dropped
+      // both from VOYAGER_FEATURES because neither is built (public/sw.js
+      // makes /api/* network-only and excludes map tiles), but this table was
+      // missed and kept advertising them on the page people pay from.
       { feature: 'PDF export', wanderer: { kind: 'dash' }, voyager: { kind: 'check' } },
-      {
-        feature: 'Attachments',
-        wanderer: { kind: 'text', text: '5' },
-        voyager: { kind: 'text', text: '∞' },
-      },
     ],
   },
   {

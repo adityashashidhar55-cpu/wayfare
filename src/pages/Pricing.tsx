@@ -186,8 +186,12 @@ function VoyagerCta({
       <Button size="lg" pill className="w-full" onClick={onUpgrade}>
         Go Voyager, {priceForBrowser()[interval].label}
       </Button>
+      {/* r27: "7-day free trial" removed. No trial is implemented anywhere -
+          billing.createOrder charges immediately - and now that checkout takes
+          real money, promising a trial we do not honour is a chargeback and a
+          consumer-protection problem, not just sloppy copy. */}
       <p className="type-caption mt-3 text-center text-ink-3">
-        7-day free trial · Cancel in one click
+        Cancel in one click · Access runs to the end of the period you've paid for
       </p>
     </div>
   );
