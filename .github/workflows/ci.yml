@@ -15,19 +15,38 @@ jobs:
   build:
     name: Typecheck, test, build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
+      # Run #1 failed with three steps at exit 127 (command not found) and a
+      # `baseUrl has been removed` error that only TypeScript 7 emits — i.e.
+      # devDependencies never landed, so `tsc` resolved to the runner's global
+      # TypeScript instead of the project's pinned 5.9.
+      #
+      # So: no `|| npm install` fallback that can mask a broken install, and
+      # devDependencies are requested explicitly. If this step fails the job
+      # stops, which is what we want — everything after it would be noise.
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+        run: npm ci --include=dev --no-audit --no-fund
 
+      # Proves the local toolchain is actually on PATH before we blame the code.
+      - name: Verify toolchain
+        run: |
+          echo "node   $(node -v)"
+          echo "npm    $(npm -v)"
+          echo "tsc    $(npx --no-install tsc --version || echo 'MISSING')"
+          echo "vitest $(npx --no-install vitest --version || echo 'MISSING')"
+          echo "vite   $(npx --no-install vite --version || echo 'MISSING')"
+
+      # Each step continues on error so ONE run reports every failure category
+      # instead of stopping at the first. The gate below fails the build.
       - name: Typecheck
         id: typecheck
         continue-on-error: true
@@ -58,6 +77,15 @@ jobs:
           echo "| Lint | ${{ steps.lint.outcome }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${{ steps.build.outcome }} |" >> $GITHUB_STEP_SUMMARY
 
+      # Lint is advisory; it does not fail the build.
       - name: Gate
         if: steps.typecheck.outcome == 'failure' || steps.test.outcome == 'failure' || steps.build.outcome == 'failure'
         run: exit 1
+
+      - name: Upload build output
+        if: steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
