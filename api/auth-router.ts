@@ -301,8 +301,11 @@ export const authRouter = createRouter({
         }),
       );
 
-      const { passwordHash: _hidden, ...payload } = user;
-      return { ...payload, upgradedFromGuest: isGuestCaller && !existing };
+      return {
+        ...user,
+        passwordHash: null,
+        upgradedFromGuest: isGuestCaller && !existing,
+      };
     }),
 
   /** Is this session a throwaway guest? Drives the "save your trips" nudge. */
