@@ -2,7 +2,8 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'framer-motion';
 import { Check, Crown } from 'lucide-react';
-import { VOYAGER_PRICE } from '@contracts/premium';
+import { priceForBrowser } from '@contracts/premium';
+import { CURRENCY_SYMBOLS } from '@contracts/fx';
 import { trpc } from '@/providers/trpc';
 import { useAuth } from '@/hooks/useAuth';
 import { LOGIN_PATH } from '@/const';
@@ -55,9 +56,10 @@ function BillingToggle({
   interval: BillingInterval;
   onChange: (i: BillingInterval) => void;
 }) {
-  const savePct = Math.round(
-    (1 - VOYAGER_PRICE.yearly.cents / (VOYAGER_PRICE.monthly.cents * 12)) * 100,
-  );
+  // r25: prices are per-market (see contracts/premium.ts) - India gets rupee
+  // pricing rather than an FX conversion of the US price.
+  const P = priceForBrowser();
+  const savePct = Math.round((1 - P.yearly.cents / (P.monthly.cents * 12)) * 100);
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.94 }}
@@ -173,7 +175,7 @@ function VoyagerCta({
   return (
     <div className="mt-8">
       <Button size="lg" pill className="w-full" onClick={onUpgrade}>
-        Go Voyager, {VOYAGER_PRICE[interval].label}
+        Go Voyager, {priceForBrowser()[interval].label}
       </Button>
       <p className="type-caption mt-3 text-center text-ink-3">
         7-day free trial · Cancel in one click
@@ -197,8 +199,10 @@ export default function Pricing() {
   const isVoyager = billing.data?.subscription.tier === 'voyager';
   const periodEnd = billing.data?.subscription.currentPeriodEnd;
 
-  const monthlyEq = (VOYAGER_PRICE.yearly.cents / 12 / 100).toFixed(2);
-  const monthlyPrice = (VOYAGER_PRICE.monthly.cents / 100).toFixed(2);
+  const P = priceForBrowser();
+  const sym = CURRENCY_SYMBOLS[P.currency] ?? '$';
+  const monthlyEq = (P.yearly.cents / 12 / 100).toFixed(P.currency === 'INR' ? 0 : 2);
+  const monthlyPrice = (P.monthly.cents / 100).toFixed(P.currency === 'INR' ? 0 : 2);
 
   const handleUpgrade = () => {
     if (authLoading) return;
@@ -308,14 +312,14 @@ export default function Pricing() {
             <p className="type-small mt-1 text-ink-3">For the long haul & the whole crew</p>
             <div className="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <RollingPrice
-                text={`$${(VOYAGER_PRICE[interval].cents / 100).toFixed(2)}`}
+                text={`${sym}${(P[interval].cents / 100).toFixed(P.currency === 'INR' ? 0 : 2)}`}
                 className="tnum font-serif text-[48px] font-medium leading-none tracking-[-0.02em] text-ink"
               />
               <span className="type-caption text-ink-3">/{interval === 'yearly' ? 'year' : 'month'}</span>
               {interval === 'yearly' && (
                 <span className="type-caption tnum text-ink-3">
-                  <s>${monthlyPrice}/mo</s>{' '}
-                  <span className="font-semibold text-ink-2">${monthlyEq}/mo</span>
+                  <s>{sym}{monthlyPrice}/mo</s>{' '}
+                  <span className="font-semibold text-ink-2">{sym}{monthlyEq}/mo</span>
                 </span>
               )}
             </div>

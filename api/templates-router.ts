@@ -6,6 +6,7 @@ import * as schema from "@db/schema";
 import { getDb } from "./queries/connection";
 import { getTier } from "./queries/subscriptions";
 import { authedQuery, createRouter, publicQuery } from "./middleware";
+import { resolveTz, todayIn } from "./lib/tz";
 
 /**
  * Ready-made plan templates (trip_templates) - curated trips users clone into
@@ -127,8 +128,9 @@ export const templatesRouter = createRouter({
       // Same active-trip cap as trips.create (Free: 3 active trips).
       const tier = await getTier(ctx.user.id);
       const owned = await db.select().from(schema.trips).where(eq(schema.trips.ownerId, ctx.user.id));
-      const today = new Date().toISOString().slice(0, 10);
-      const activeCount = owned.filter((t) => t.endDate >= today).length;
+      const activeCount = owned.filter(
+        (t) => t.endDate >= todayIn(resolveTz(t.timezone, ctx.user.timezone)),
+      ).length;
       if (activeCount >= TIERS[tier].maxTrips) {
         throw new TRPCError({ code: "FORBIDDEN", message: "UPGRADE_REQUIRED" });
       }

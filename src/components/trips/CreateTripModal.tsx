@@ -22,7 +22,7 @@ import {
 import type { DateRange } from 'react-day-picker';
 import { toast } from 'sonner';
 import { CURRENCY_SYMBOLS, FX_PER_USD } from '@contracts/fx';
-import { VOYAGER_PRICE } from '@contracts/premium';
+import { priceForBrowser } from '@contracts/premium';
 import { trpc } from '@/providers/trpc';
 import { Button } from '@/components/ui/button';
 import {
@@ -1215,7 +1215,7 @@ function CreateTripModalContent({
               <h3 className="type-h3 mt-5 text-ink">Your Wanderer atlas is full</h3>
               <p className="type-body mt-2 max-w-[42ch] text-ink-2">
                 Free plans hold 3 active trips. Wayfare Voyager unlocks unlimited trips, route
-                optimization, and unlimited collaborators, {VOYAGER_PRICE.yearly.label}.
+                optimization, and unlimited collaborators, {priceForBrowser().yearly.label}.
               </p>
               <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
                 <Button variant="ghost" onClick={() => onOpenChange(false)}>

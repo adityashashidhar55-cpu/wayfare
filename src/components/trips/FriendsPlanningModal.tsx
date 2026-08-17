@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Copy, Crown, Loader2, Users } from 'lucide-react';
 import { toast } from 'sonner';
-import { VOYAGER_PRICE } from '@contracts/premium';
+import { priceForBrowser } from '@contracts/premium';
 import { trpc } from '@/providers/trpc';
 import { Button } from '@/components/ui/button';
 import {
@@ -118,7 +118,7 @@ function FriendsPlanningContent({ onOpenChange }: Props) {
             <h3 className="type-h3 mt-5 text-ink">Friends planning is a Voyager perk</h3>
             <p className="type-body mt-2 max-w-[42ch] text-ink-2">
               One Voyager in the group is enough, everyone else joins free with a link. Voyager
-              unlocks friends planning, unlimited trips, and more, {VOYAGER_PRICE.yearly.label}.
+              unlocks friends planning, unlimited trips, and more, {priceForBrowser().yearly.label}.
             </p>
             <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
               <Button variant="ghost" onClick={() => onOpenChange(false)}>

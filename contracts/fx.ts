@@ -61,7 +61,11 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
 /** Currencies whose minor unit is not used in practice (whole-unit display). */
 const ZERO_DECIMAL = new Set([
   "JPY", "KRW", "VND", "IDR", "ISK",
-  "HUF", "CZK", "TRY", "EGP", "NPR", "LAK", "ARS", "INR",
+  "HUF", "CZK", "TRY", "EGP", "LAK", "ARS",
+  // r25: INR and NPR removed. The rupee's minor unit is very much used in
+  // practice — real Indian receipts carry paise, and this is an India-first
+  // product. Amounts were stored precisely (₹150.50 -> 15050) and then always
+  // DISPLAYED rounded to ₹151, so the ledger and the receipt disagreed.
 ]);
 
 /** Convert amountCents from `from` currency to `to` currency using static rates. */

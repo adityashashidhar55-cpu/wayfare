@@ -19,11 +19,14 @@ import { analyzeForecast, flagsFor, type ForecastDay } from "./weather-advice";
 import { geocodeCity } from "../queries/overpass";
 import { notifyOnce } from "./notify";
 import { bestTimeFor } from "./best-time";
+import { todayIn } from "./tz";
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 
+/** Cron runs server-side with no user in scope, so it uses the app default
+ *  zone (APP_DEFAULT_TZ, Asia/Kolkata) rather than raw UTC. */
 function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayIn(null);
 }
 
 /** Weather threshold scan for trips starting inside the forecast horizon. */

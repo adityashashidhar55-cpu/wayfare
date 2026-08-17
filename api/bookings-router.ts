@@ -24,6 +24,7 @@ import { TRPCError } from "@trpc/server";
 import * as schema from "@db/schema";
 import { getDb } from "./queries/connection";
 import { authedQuery, createRouter } from "./middleware";
+import { resolveTz, todayIn } from "./lib/tz";
 import { getTier } from "./queries/subscriptions";
 import { geocodeCity, searchPhoton } from "./queries/overpass";
 import { TIERS } from "@contracts/premium";
@@ -1115,9 +1116,10 @@ async function mostRecentActiveTrip(
     .select()
     .from(schema.trips)
     .where(inArray(schema.trips.id, ids));
-  const today = new Date().toISOString().slice(0, 10);
+  // r25: each trip judged in its own destination timezone, so a trip ending
+  // today isn't dropped just because the server's UTC day already rolled over.
   const active = rows
-    .filter(t => t.endDate >= today)
+    .filter(t => t.endDate >= todayIn(resolveTz(t.timezone)))
     .sort((a, b) => Number(b.id) - Number(a.id));
   return active[0] ?? null;
 }

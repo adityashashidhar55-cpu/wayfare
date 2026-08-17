@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import { CreditCard, Crown, Lock } from 'lucide-react';
-import { VOYAGER_PRICE } from '@contracts/premium';
+import { priceForBrowser } from '@contracts/premium';
 import { trpc } from '@/providers/trpc';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -101,7 +101,7 @@ export function CheckoutModal({
   const [expiry, setExpiry] = useState('12 / 28');
   const [cvc, setCvc] = useState('424');
 
-  const price = VOYAGER_PRICE[interval];
+  const price = priceForBrowser()[interval];
 
   const checkout = trpc.billing.checkout.useMutation({
     onSuccess: () => {

@@ -30,6 +30,10 @@ export const users = mysqlTable("users", {
   // db/seed-referral-codes.ts and minted on insert by upsertUser.
   referralCode: varchar("referralCode", { length: 12 }).unique(),
   referredById: bigint("referredById", { mode: "number", unsigned: true }),
+  // r25: the user's home IANA zone, reported by the browser on sign-in
+  // (Intl.DateTimeFormat().resolvedOptions().timeZone). Used for date
+  // boundaries when a trip has no zone of its own.
+  timezone: varchar("timezone", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
@@ -104,6 +108,12 @@ export const trips = mysqlTable("trips", {
   childAges: varchar("childAges", { length: 64 }), // e.g. "4,7"
   // Public read-only share link (/shared/:token) - NULL = sharing off
   shareToken: varchar("shareToken", { length: 36 }),
+  // r25: IANA zone for the DESTINATION (e.g. "Asia/Kolkata"). Every "is today
+  // within this trip" question must be answered in the traveller's local zone,
+  // not the server's UTC clock - see api/lib/tz.ts. Guessed from the
+  // destination on create; NULL falls back to the user's zone, then
+  // APP_DEFAULT_TZ.
+  timezone: varchar("timezone", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
@@ -191,6 +201,37 @@ export const expenseSplits = mysqlTable("expense_splits", {
   memberId: bigint("memberId", { mode: "number", unsigned: true }).notNull(),
   shareCents: int("shareCents").notNull(), // in trip home currency
 });
+
+/**
+ * r25: settlements - "X actually paid Y back".
+ *
+ * This was previously component state (`useState<Debt[]>` in BalancesCard),
+ * so marking a debt settled vanished on refresh and the other person on the
+ * trip never saw it. For a group-expense feature this is THE record that must
+ * be durable: it's the moment real money changed hands.
+ *
+ * Amounts are integer minor units in the trip's home currency, matching
+ * expenses.homeCents.
+ */
+export const settlements = mysqlTable(
+  "settlements",
+  {
+    id: serial("id").primaryKey(),
+    tripId: bigint("tripId", { mode: "number", unsigned: true }).notNull(),
+    /** tripMembers.id of the payer (the debtor). */
+    fromMemberId: bigint("fromMemberId", { mode: "number", unsigned: true }).notNull(),
+    /** tripMembers.id of the recipient (the creditor). */
+    toMemberId: bigint("toMemberId", { mode: "number", unsigned: true }).notNull(),
+    amountCents: int("amountCents").notNull(),
+    currency: varchar("currency", { length: 3 }).notNull(),
+    note: varchar("note", { length: 255 }),
+    /** users.id of whoever recorded it - for the activity trail. */
+    recordedById: bigint("recordedById", { mode: "number", unsigned: true }).notNull(),
+    settledAt: timestamp("settledAt").defaultNow().notNull(),
+  },
+  (t) => [index("idx_settlements_trip").on(t.tripId, t.id)],
+);
+export type Settlement = typeof settlements.$inferSelect;
 export type ExpenseSplit = typeof expenseSplits.$inferSelect;
 
 // ─── Reservations / checklists / notes ───────────────────────────────────────

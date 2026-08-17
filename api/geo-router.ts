@@ -4,6 +4,7 @@ import { z } from "zod";
 import * as schema from "@db/schema";
 import { getDb } from "./queries/connection";
 import { authedQuery, createRouter } from "./middleware";
+import { resolveTz, todayIn } from "./lib/tz";
 
 /** Membership guard - same rule as trip-router's requireMembership. */
 async function requireTripMembership(tripId: number, userId: number) {
@@ -46,16 +47,24 @@ export const geoRouter = createRouter({
     const tripIds = memberships.map((m) => m.tripId);
     if (!tripIds.length) return [];
 
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, server date
-    const days = await db
+    // r25: "today" per TRIP, in the destination's zone - not one server-UTC
+    // date for everything. This query drives arrival detection, and under the
+    // old UTC logic it returned yesterday's stops for every Indian user
+    // between 00:00 and 05:29 IST.
+    const tzRows = await db
+      .select({ id: schema.trips.id, timezone: schema.trips.timezone })
+      .from(schema.trips)
+      .where(inArray(schema.trips.id, tripIds));
+    const tzByTrip = new Map(tzRows.map((t) => [t.id, t.timezone]));
+    const userTz = ctx.user.timezone ?? null;
+
+    const allDays = await db
       .select()
       .from(schema.tripDays)
-      .where(
-        and(
-          inArray(schema.tripDays.tripId, tripIds),
-          eq(schema.tripDays.date, today),
-        ),
-      );
+      .where(inArray(schema.tripDays.tripId, tripIds));
+    const days = allDays.filter(
+      (d) => d.date === todayIn(resolveTz(tzByTrip.get(d.tripId), userTz)),
+    );
     if (!days.length) return [];
 
     const dayIds = days.map((d) => d.id);

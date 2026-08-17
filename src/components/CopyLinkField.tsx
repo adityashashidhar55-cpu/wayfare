@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Check, Copy, ExternalLink } from 'lucide-react';
+import { Check, Copy, ExternalLink, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -15,11 +15,16 @@ export function CopyLinkField({
   label = 'Share link',
   copiedLabel = 'Copied',
   className,
+  shareText,
+  showWhatsApp = true,
 }: {
   url: string;
   label?: string;
   copiedLabel?: string;
   className?: string;
+  /** Message that precedes the link when sharing. */
+  shareText?: string;
+  showWhatsApp?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [copied, setCopied] = useState(false);
@@ -78,6 +83,31 @@ export function CopyLinkField({
         )}
         {copied ? 'Copied' : 'Copy'}
       </Button>
+      {/* r25: WhatsApp share. A shared trip pulls in 3-8 people and that
+          referral loop is the one growth channel we control - but it only
+          fires if the invite reaches people where they actually are. In
+          India that is WhatsApp, not an in-app notification. wa.me works on
+          web and mobile with no SDK and no Business API account. */}
+      {showWhatsApp && (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          aria-label="Share on WhatsApp"
+          className="shrink-0 bg-[#25D366]/12 text-[#128C7E] hover:bg-[#25D366]/20 dark:text-[#25D366]"
+          onClick={() => {
+            const text = shareText ? `${shareText}\n${url}` : url;
+            window.open(
+              `https://wa.me/?text=${encodeURIComponent(text)}`,
+              '_blank',
+              'noopener,noreferrer',
+            );
+          }}
+        >
+          <MessageCircle className="h-3.5 w-3.5" strokeWidth={1.75} />
+          WhatsApp
+        </Button>
+      )}
       <Button
         type="button"
         variant="ghost"

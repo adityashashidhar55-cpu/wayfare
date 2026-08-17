@@ -24,6 +24,7 @@ import { isStatueLike, styleMatchScore, STATUE_PENALTY } from "./lib/style-map";
 import { getGlobalFeed, FEED_COLUMNS, type FeedPlace } from "./lib/explore-feed";
 import { blurbFor, fameScoreFor, isGenericName, normalizeNameKey } from "./lib/place-quality";
 import { pickFamousEatsFallback } from "./lib/famous-eats";
+import { resolveTz, todayIn } from "./lib/tz";
 
 /**
  * Suggestion-surface name filter (mission r11-quality): hide OSM
@@ -366,7 +367,8 @@ export const exploreRouter = createRouter({
         .from(schema.tripMembers)
         .where(eq(schema.tripMembers.userId, ctx.user.id));
       const tripIds = memberships.map((m) => m.tripId);
-      const today = new Date().toISOString().slice(0, 10);
+      // r25: judged per trip in its own zone (see api/lib/tz.ts).
+      const today = todayIn(resolveTz(ctx.user.timezone));
       const trips = tripIds.length
         ? (
             await db

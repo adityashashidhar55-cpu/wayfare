@@ -25,6 +25,7 @@ import { TRPCError } from "@trpc/server";
 import * as schema from "@db/schema";
 import { getDb } from "./queries/connection";
 import { authedQuery, createRouter } from "./middleware";
+import { resolveTz, todayIn } from "./lib/tz";
 import { getTier } from "./queries/subscriptions";
 import { ExternalApiError, fetchJson } from "./lib/http";
 import { normalizeNameKey } from "./lib/place-quality";
@@ -898,7 +899,7 @@ export const socialRouter = createRouter({
       // Free-tier limit — identical rule to trips.create.
       const tier = await getTier(ctx.user.id);
       const owned = await db.select().from(schema.trips).where(eq(schema.trips.ownerId, ctx.user.id));
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayIn(resolveTz(ctx.user.timezone));
       if (countActiveTrips(owned, today) >= TIERS[tier].maxTrips) {
         throw new TRPCError({ code: "FORBIDDEN", message: "UPGRADE_REQUIRED" });
       }

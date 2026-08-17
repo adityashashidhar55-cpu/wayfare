@@ -39,6 +39,9 @@ export const tokensRouter = createRouter({
       const reward = rewardById(input.rewardId);
       if (!reward) throw new TRPCError({ code: "NOT_FOUND", message: "Unknown reward" });
       const db = getDb();
+      // Cheap pre-check for a friendly error. The AUTHORITATIVE check is
+      // inside spendTokens' transaction below - doing it only here is what
+      // allowed two concurrent redeems to both pass and overdraw the balance.
       const balance = await tokenBalance(ctx.user.id);
       if (balance < reward.cost) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Not enough tokens yet" });
@@ -59,8 +62,16 @@ export const tokensRouter = createRouter({
       const spent = await spendTokens(ctx.user.id, reward.cost, `redeem:${reward.id}`, {
         name: reward.name,
       });
-      if (!spent) {
+      if (spent === "insufficient") {
+        // Lost a race with a concurrent redeem - the balance was enough when
+        // we pre-checked and isn't any more.
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Not enough tokens yet" });
+      }
+      if (spent === "duplicate") {
         throw new TRPCError({ code: "CONFLICT", message: "Redemption already recorded" });
+      }
+      if (spent !== "ok") {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not record that redemption" });
       }
       await db.insert(schema.rewardsRedeemed).values({
         userId: ctx.user.id,

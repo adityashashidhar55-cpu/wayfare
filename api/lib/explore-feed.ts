@@ -127,8 +127,13 @@ type LightScoredRow = {
  * r22-speed payload trim: hydrate feed rows with only the columns the
  * explore clients render (PlaceCard / PlaceDetailDialog / AddPlaceOverlay /
  * JournalEditor). Dropped: styles (client uses server-computed matchStyles),
- * nameLocal, osmId, source, descriptionSource, photoSource, photoAttribution,
- * mealNote (admin/portal surfaces read those through other endpoints).
+ * nameLocal, osmId, source, descriptionSource, mealNote (admin/portal
+ * surfaces read those through other endpoints).
+ *
+ * r25: photoAttribution and photoSource are BACK in the payload. They were
+ * dropped as a payload trim, but the Wikimedia/Wikipedia photos we render are
+ * mostly CC-BY-SA, which obliges us to credit the author next to the image.
+ * They are two short nullable strings; the licence isn't optional.
  */
 export const FEED_COLUMNS = {
   id: schema.explorePlaces.id,
@@ -153,6 +158,8 @@ export const FEED_COLUMNS = {
   famousEatery: schema.explorePlaces.famousEatery,
   addedById: schema.explorePlaces.addedById,
   approved: schema.explorePlaces.approved,
+  photoSource: schema.explorePlaces.photoSource,
+  photoAttribution: schema.explorePlaces.photoAttribution,
 } as const;
 
 export type FeedRow = Pick<

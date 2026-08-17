@@ -8,6 +8,7 @@ import { getTier } from "./queries/subscriptions";
 import { findUserByEmail } from "./queries/users";
 import { geocodeCity, searchPhoton } from "./queries/overpass";
 import { isGenericName, isParkingLikeName } from "./lib/place-quality";
+import { guessTimeZone, resolveTz, todayIn } from "./lib/tz";
 import { convertCents } from "@contracts/fx";
 import { TIERS } from "@contracts/premium";
 import { isKidRecharge, kidClass, kidScore } from "@contracts/kids";
@@ -850,12 +851,14 @@ export const tripRouter = createRouter({
       .select()
       .from(schema.tripMembers)
       .where(inArray(schema.tripMembers.tripId, tripIds));
-    const today = new Date().toISOString().slice(0, 10);
+    // r25: each trip's status is judged in ITS OWN destination timezone.
+    // A trip ending today in Coorg shouldn't read "past" because the server
+    // in UTC has already rolled over.
     const trips = rows
       .map((t) => ({
         ...t,
         members: members.filter((m) => m.tripId === t.id),
-        status: t.endDate < today ? "past" : "upcoming",
+        status: t.endDate < todayIn(resolveTz(t.timezone, ctx.user.timezone)) ? "past" : "upcoming",
       }))
       .sort((a, b) => (a.startDate < b.startDate ? 1 : -1));
     return { trips, tier: await getTier(ctx.user.id) };
@@ -942,8 +945,9 @@ export const tripRouter = createRouter({
       const db = getDb();
       const tier = await getTier(ctx.user.id);
       const owned = await db.select().from(schema.trips).where(eq(schema.trips.ownerId, ctx.user.id));
-      const today = new Date().toISOString().slice(0, 10);
-      const activeCount = owned.filter((t) => t.endDate >= today).length;
+      const activeCount = owned.filter(
+        (t) => t.endDate >= todayIn(resolveTz(t.timezone, ctx.user.timezone)),
+      ).length;
       if (activeCount >= TIERS[tier].maxTrips) {
         throw new TRPCError({ code: "FORBIDDEN", message: "UPGRADE_REQUIRED" });
       }
@@ -964,6 +968,11 @@ export const tripRouter = createRouter({
         flexibility: input.flexibility ?? null,
         foodPrefs: input.foodPrefs ?? null,
         mustSee: input.mustSee ?? null,
+        // r25: stamp the destination's timezone at create so every later
+        // "is today inside this trip" question is answered in the traveller's
+        // local zone. Falls back to the user's own zone when the destination
+        // isn't confidently recognised (see guessTimeZone).
+        timezone: guessTimeZone(input.destination) ?? ctx.user.timezone ?? null,
       });
       const tripId = Number(result[0].insertId);
       await db.insert(schema.tripMembers).values({
@@ -1669,6 +1678,80 @@ export const tripRouter = createRouter({
     }),
 
   // ── Expenses ─────────────────────────────────────────────────────────────
+  // ── Settlements (r25) ────────────────────────────────────────────────────
+  /**
+   * "X paid Y back." Previously this lived in component state, so it vanished
+   * on refresh and nobody else on the trip ever saw it. For a group-expense
+   * feature this is the one record that has to be durable - it's the moment
+   * real money moved.
+   */
+  settlements: authedQuery
+    .input(z.object({ tripId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      await requireMembership(input.tripId, ctx.user.id);
+      return getDb()
+        .select()
+        .from(schema.settlements)
+        .where(eq(schema.settlements.tripId, input.tripId))
+        .orderBy(asc(schema.settlements.id));
+    }),
+
+  addSettlement: authedQuery
+    .input(
+      z.object({
+        tripId: z.number(),
+        fromMemberId: z.number(),
+        toMemberId: z.number(),
+        amountCents: z.number().int().positive(),
+        note: z.string().max(255).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await requireEditor(input.tripId, ctx.user.id);
+      if (input.fromMemberId === input.toMemberId) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "A member cannot settle with themselves" });
+      }
+      const db = getDb();
+      // Both members must belong to THIS trip - ids are enumerable, and a
+      // settlement pointing at a stranger's member row would corrupt the
+      // balance maths for two different trips at once.
+      const members = await db
+        .select({ id: schema.tripMembers.id })
+        .from(schema.tripMembers)
+        .where(
+          and(
+            eq(schema.tripMembers.tripId, input.tripId),
+            inArray(schema.tripMembers.id, [input.fromMemberId, input.toMemberId]),
+          ),
+        );
+      if (members.length !== 2) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Both members must belong to this trip" });
+      }
+      const [trip] = await db.select().from(schema.trips).where(eq(schema.trips.id, input.tripId)).limit(1);
+      if (!trip) throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+
+      const result = await db.insert(schema.settlements).values({
+        tripId: input.tripId,
+        fromMemberId: input.fromMemberId,
+        toMemberId: input.toMemberId,
+        amountCents: input.amountCents,
+        currency: trip.homeCurrency,
+        note: input.note ?? null,
+        recordedById: ctx.user.id,
+      });
+      return { id: Number(result[0].insertId) };
+    }),
+
+  deleteSettlement: authedQuery
+    .input(z.object({ id: z.number(), tripId: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      await requireEditor(input.tripId, ctx.user.id);
+      await getDb()
+        .delete(schema.settlements)
+        .where(and(eq(schema.settlements.id, input.id), eq(schema.settlements.tripId, input.tripId)));
+      return { ok: true };
+    }),
+
   addExpense: authedQuery
     .input(
       z.object({

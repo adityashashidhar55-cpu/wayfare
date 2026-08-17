@@ -92,8 +92,46 @@ export default function Footer() {
           ))}
         </div>
 
+        {/* Data attribution (r25). Required, not decorative: the place corpus
+            is derived from OpenStreetMap, whose ODbL licence obliges us to
+            credit it, and photos come from Wikimedia Commons under CC-BY-SA
+            and friends. We were shipping 500k+ derived rows with no credit
+            anywhere. */}
+        <div className="mt-16 border-t border-border pt-8">
+          <p className="type-small text-ink-3">
+            Place data ©{' '}
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-border underline-offset-2 transition-colors hover:text-ink-2"
+            >
+              OpenStreetMap
+            </a>{' '}
+            contributors, licensed under{' '}
+            <a
+              href="https://opendatacommons.org/licenses/odbl/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-border underline-offset-2 transition-colors hover:text-ink-2"
+            >
+              ODbL
+            </a>
+            . Geocoding by Photon. Weather by{' '}
+            <a
+              href="https://open-meteo.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline decoration-border underline-offset-2 transition-colors hover:text-ink-2"
+            >
+              Open-Meteo
+            </a>
+            . Photographs from Wikimedia Commons and Wikipedia under their respective licences.
+          </p>
+        </div>
+
         {/* Bottom row */}
-        <div className="mt-16 flex flex-col items-center justify-between gap-6 border-t border-border pt-8 md:flex-row">
+        <div className="mt-8 flex flex-col items-center justify-between gap-6 border-t border-border pt-8 md:flex-row">
           <p className="type-small text-ink-3">© 2025 Wayfare. Every journey, beautifully planned.</p>
           <div className="flex items-center gap-1">
             {SOCIALS.map(({ icon: Icon, label }) => (

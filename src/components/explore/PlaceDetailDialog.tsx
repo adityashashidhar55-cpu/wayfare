@@ -236,6 +236,23 @@ export default function PlaceDetailDialog({
                   <MapPin className="h-8 w-8 text-ink-3" strokeWidth={1.5} />
                 </div>
               )}
+
+              {/* r25: photo credit. Wikimedia/Wikipedia images are mostly
+                  CC-BY-SA, which requires crediting the author wherever the
+                  image appears. We were storing photoAttribution and never
+                  showing it. Only rendered for a real photo of this place —
+                  the stock-pool fallback is a generic image of somewhere else
+                  and must never carry a credit implying otherwise. */}
+              {place.photoSource && place.photoAttribution && imgLoaded && (
+                <figcaption
+                  className="pointer-events-none absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/65 to-transparent px-3 pb-1.5 pt-6"
+                  title={place.photoAttribution}
+                >
+                  <span className="type-caption line-clamp-1 text-[10px] text-white/75">
+                    {place.photoAttribution}
+                  </span>
+                </figcaption>
+              )}
               <span className="glass type-caption absolute left-4 top-4 rounded-pill px-2.5 py-1 text-ink">
                 {categoryLabel(place)}
               </span>

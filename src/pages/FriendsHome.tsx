@@ -119,6 +119,7 @@ function MintInviteButton({ session }: { session: Session }) {
           url={link}
           label={`invite link for ${session.title}`}
           copiedLabel="Invite link copied, it admits one friend"
+          shareText={`Planning "${session.title}" on Wayfare — add the dates you're free and we'll find a weekend that works for everyone:`}
           className="mt-2"
         />
       )}
@@ -166,6 +167,9 @@ function SessionRow({ session: s }: { session: Session }) {
           url={`${window.location.origin}${s.path}`}
           label={`your personal link for ${s.title}`}
           copiedLabel="Your personal link copied, keep it to yourself"
+          // Personal, single-user link - no WhatsApp button, sharing it would
+          // hand someone else your own slot in the session.
+          showWhatsApp={false}
           className="mt-3"
         />
       )}

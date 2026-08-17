@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Check, Crown, Download, Info, Medal } from 'lucide-react';
@@ -9,41 +9,52 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserAvatar } from '@/components/UserAvatar';
 import { computeBalances, simplifyDebts, type Debt, type ExpenseWithSplits } from './utils';
+import { trpc } from '@/providers/trpc';
 import { toast } from './toast';
 
 const RANK_COLORS = ['var(--ochre)', 'var(--ink-3)', '#B08D57'];
 
 /**
  * "Settle up" (expenses.md §S3): simplified debt rows with per-row Settle,
- * "who paid most" ranking, and export actions. Settlements are presentation-
- * level (the API has no settlement entity) - settling applies the transfer to
- * the in-memory balances and re-simplifies.
+ * "who paid most" ranking, and export actions.
+ *
+ * r25: settlements are now PERSISTED via trips.addSettlement. They used to be
+ * component state, so marking a debt settled vanished on refresh and the other
+ * person on the trip never saw it - which is the one thing a group-expense
+ * feature can't get wrong, since it's the moment real money changed hands.
  */
 export function BalancesCard({
+  tripId,
   expenses,
   members,
   homeCurrency,
 }: {
+  tripId: number;
   expenses: ExpenseWithSplits[];
   members: TripMember[];
   homeCurrency: string;
 }) {
-  const [settled, setSettled] = useState<Debt[]>([]);
+  const utils = trpc.useUtils();
+  const { data: settlements } = trpc.trips.settlements.useQuery({ tripId });
+  const addSettlement = trpc.trips.addSettlement.useMutation({
+    onSuccess: () => utils.trips.settlements.invalidate({ tripId }),
+    onError: (e) => toast(e.message || 'Could not save that settlement', { tone: 'error' }),
+  });
   const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
 
   const balances = useMemo(() => {
     const base = computeBalances(expenses, members).map((b) => ({ ...b }));
-    // Apply settled transfers: debtor paid, creditor received.
-    for (const s of settled) {
-      const from = base.find((b) => b.member.id === s.fromId);
-      const to = base.find((b) => b.member.id === s.toId);
+    // Apply recorded settlements: debtor paid, creditor received.
+    for (const s of settlements ?? []) {
+      const from = base.find((b) => b.member.id === s.fromMemberId);
+      const to = base.find((b) => b.member.id === s.toMemberId);
       if (from && to) {
-        from.net += s.cents;
-        to.net -= s.cents;
+        from.net += s.amountCents;
+        to.net -= s.amountCents;
       }
     }
     return base;
-  }, [expenses, members, settled]);
+  }, [expenses, members, settlements]);
 
   const debts = useMemo(() => simplifyDebts(balances), [balances]);
   const debtorCount = balances.filter((b) => b.net < -1).length;
@@ -168,12 +179,25 @@ export function BalancesCard({
                             <div className="mt-3 flex justify-end">
                               <Button
                                 size="sm"
+                                disabled={addSettlement.isPending}
                                 onClick={() => {
-                                  setSettled((prev) => [...prev, d]);
-                                  toast('Marked as settled', { tone: 'success' });
+                                  addSettlement.mutate(
+                                    {
+                                      tripId,
+                                      fromMemberId: d.fromId,
+                                      toMemberId: d.toId,
+                                      amountCents: d.cents,
+                                    },
+                                    {
+                                      onSuccess: () =>
+                                        toast('Settled — everyone on the trip can see it', {
+                                          tone: 'success',
+                                        }),
+                                    },
+                                  );
                                 }}
                               >
-                                Confirm
+                                {addSettlement.isPending ? 'Saving…' : 'Confirm'}
                               </Button>
                             </div>
                           </PopoverContent>

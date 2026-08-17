@@ -13,6 +13,7 @@ import { z } from "zod";
 import * as schema from "@db/schema";
 import { getDb } from "./queries/connection";
 import { createRouter, premiumQuery } from "./middleware";
+import { resolveTz, todayIn } from "./lib/tz";
 import { notify, notifyOnce } from "./lib/notify";
 
 async function tripInProgress(tripId: number, userId: number) {
@@ -25,7 +26,9 @@ async function tripInProgress(tripId: number, userId: number) {
   if (!member) throw new TRPCError({ code: "FORBIDDEN", message: "Not a member of this trip" });
   const [trip] = await db.select().from(schema.trips).where(eq(schema.trips.id, tripId)).limit(1);
   if (!trip) throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
-  const today = new Date().toISOString().slice(0, 10);
+  // r25: in-progress is decided in the DESTINATION's zone, so travel mode
+  // unlocks when the traveller's day starts, not when UTC rolls over.
+  const today = todayIn(resolveTz(trip.timezone));
   if (today < trip.startDate || today > trip.endDate) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "TRIP_NOT_IN_PROGRESS" });
   }
@@ -42,7 +45,7 @@ export const travelRouter = createRouter({
     .query(async ({ ctx, input }) => {
       const trip = await tripInProgress(input.tripId, ctx.user.id);
       const db = getDb();
-      const today = new Date().toISOString().slice(0, 10);
+      const today = todayIn(resolveTz(trip.timezone, ctx.user.timezone));
       const days = await db
         .select()
         .from(schema.tripDays)

@@ -14,7 +14,7 @@ import {
   UtensilsCrossed,
   X,
 } from 'lucide-react';
-import { PREFERENCE_STYLES, VOYAGER_PRICE } from '@contracts/premium';
+import { PREFERENCE_STYLES, priceForBrowser } from '@contracts/premium';
 import { formatMoney } from '@contracts/fx';
 import { formatChildAges } from '@contracts/kids';
 import { DIET_META, isVegDiet, parseDietary } from '@/lib/diet';
@@ -123,7 +123,7 @@ export function VoyagerUpsellContent({ onClose }: { onClose: () => void }) {
       <p className="type-body mt-2 max-w-[42ch] text-ink-2">
         Free plans hold 3 active trips. Wayfare Voyager unlocks unlimited trips, AI
         itineraries, route optimization, and unlimited collaborators, {' '}
-        {VOYAGER_PRICE.yearly.label}.
+        {priceForBrowser().yearly.label}.
       </p>
       <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
         <Button variant="ghost" onClick={onClose}>
