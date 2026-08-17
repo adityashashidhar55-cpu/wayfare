@@ -28,13 +28,22 @@ const WANDERER_FEATURES = [
   'Unlimited trips',
 ];
 
+/* r26: two entries were removed because nothing implemented them.
+   - "Offline maps": public/sw.js explicitly excludes map tiles AND /api/* from
+     caching, so there was never any offline capability to sell.
+   - "Unlimited attachments & receipts": there is no upload or storage path in
+     the codebase at all.
+   "PDF itinerary export" stayed, because it is now real (browser print
+   pipeline + the print stylesheet in index.css). Selling a feature that does
+   not exist is a refund waiting to happen; add these back when they ship. */
 const VOYAGER_FEATURES = [
-  'Unlimited collaborators',
+  'Unlimited trips & collaborators',
+  'AI itinerary generation',
   'Optimize route (traveling-salesman smart ordering)',
   'Flight & hotel email import',
-  'Offline maps',
+  'Group planning with availability voting',
+  'Travel mode & live location sharing',
   'PDF itinerary export',
-  'Unlimited attachments & receipts',
   'Priority support',
 ];
 

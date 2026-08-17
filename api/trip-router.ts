@@ -367,9 +367,41 @@ const isMealPlace = (p: PlaceRow) => {
 
 const tag0 = (p: PlaceRow) => (p.tags ?? [])[0] ?? p.category;
 
-/** Recommendation corpus for a destination (city or country match). */
-async function fetchDestinationCandidates(dest: string): Promise<PlaceRow[]> {
-  const rows = await getDb()
+/** Below this, a destination is too thin to plan from and we import live. */
+const MIN_CANDIDATES_FOR_PLAN = 12;
+
+/**
+ * Recommendation corpus for a destination (city or country match).
+ *
+ * r26: `autoImport` closes the biggest hole in the product. The corpus is
+ * populated only by hand-run seed scripts in db/, so on any fresh deployment
+ * this returned [] for every destination on earth, and generateItinerary threw
+ * DESTINATION_UNKNOWN every single time. The app already knows how to import a
+ * city live from OSM/Overpass (that is exactly what CityBuilder and
+ * explore.discover do, free and keyless) - the planner just never called it.
+ * Now a thin destination imports itself on first use and the second query
+ * finds real places.
+ */
+async function fetchDestinationCandidates(dest: string, autoImport = false): Promise<PlaceRow[]> {
+  let rows = await queryDestinationRows(dest);
+
+  if (autoImport && rows.length < MIN_CANDIDATES_FOR_PLAN) {
+    try {
+      const { importCityPlaces } = await import("./queries/overpass");
+      await importCityPlaces(dest);
+      rows = await queryDestinationRows(dest);
+    } catch (e) {
+      // Overpass down, unknown city, rate limited: fall through with whatever
+      // we already had. The caller still reports DESTINATION_UNKNOWN, so the
+      // user sees a real message instead of a 500.
+      console.warn(`[plan] live import failed for ${dest}:`, e instanceof Error ? e.message : e);
+    }
+  }
+  return scopeAndClean(rows);
+}
+
+async function queryDestinationRows(dest: string): Promise<PlaceRow[]> {
+  return getDb()
     .select()
     .from(schema.explorePlaces)
     .where(
@@ -378,6 +410,9 @@ async function fetchDestinationCandidates(dest: string): Promise<PlaceRow[]> {
         like(schema.explorePlaces.country, `%${dest}%`),
       ),
     );
+}
+
+function scopeAndClean(rows: PlaceRow[]): PlaceRow[] {
   // Same-name cities abroad: "Goa" matches both Goa, India and Goa,
   // Philippines corpus rows. Keep the plurality country's rows so a
   // single-city plan never mixes places from two countries.
@@ -1077,7 +1112,8 @@ export const tripRouter = createRouter({
 
       // Find candidate places from the recommendation corpus
       const dest = input.destination.split(",")[0].trim();
-      let candidates = await fetchDestinationCandidates(dest);
+      // autoImport: a fresh corpus must not mean 'this destination does not exist'.
+      let candidates = await fetchDestinationCandidates(dest, true);
       if (candidates.length < 4) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "DESTINATION_UNKNOWN" });
       }
@@ -1287,7 +1323,7 @@ export const tripRouter = createRouter({
 
       // Candidate corpus for the trip's destination, minus places already planned.
       const dest = trip.destination.split(",")[0].trim();
-      const candidates = await fetchDestinationCandidates(dest);
+      const candidates = await fetchDestinationCandidates(dest, true);
       if (candidates.length < 4) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "DESTINATION_UNKNOWN" });
       }
@@ -2185,7 +2221,7 @@ export const tripRouter = createRouter({
       let stopsPlanned = 0;
       if (!dayStops.length) {
         const dest = trip.destination.split(",")[0].trim();
-        const candidates = await fetchDestinationCandidates(dest);
+        const candidates = await fetchDestinationCandidates(dest, true);
         const allStops = await db.select().from(schema.stops).where(eq(schema.stops.tripId, input.tripId));
         const takenNames = new Set(allStops.map((s) => s.name.trim().toLowerCase()));
         const fresh = candidates.filter((p) => !takenNames.has(p.name.trim().toLowerCase()));

@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, Check, Crown, Download, Info, Medal } from 'lucide-react';
+import { ArrowRight, Check, Download, Info, Medal } from 'lucide-react';
 import type { TripMember } from '@contracts/types';
 import { formatMoney } from '@contracts/fx';
 import { Button } from '@/components/ui/button';
@@ -244,11 +243,15 @@ export function BalancesCard({
               <Download className="h-4 w-4" strokeWidth={1.75} />
               Export CSV
             </Button>
-            <Button variant="premium" size="sm" asChild>
-              <Link to="/pricing">
-                <Crown className="h-4 w-4" strokeWidth={1.75} />
-                PDF report
-              </Link>
+            {/* r26: this used to link to /pricing unconditionally - even for a
+                Voyager who had already paid for "PDF itinerary export", which
+                did not exist anywhere in the codebase. Now it really produces
+                a PDF via the browser's print pipeline (same approach the
+                Bookings tab already used), with a print stylesheet that hides
+                the app chrome. No dependency, works offline. */}
+            <Button variant="ghost" size="sm" onClick={() => window.print()}>
+              <Download className="h-4 w-4" strokeWidth={1.75} />
+              PDF report
             </Button>
           </div>
         </div>

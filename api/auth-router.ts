@@ -207,4 +207,107 @@ export const authRouter = createRouter({
       const { passwordHash: _omit, ...payload } = fresh ?? user;
       return payload;
     }),
+
+  /**
+   * r26: EMAIL SIGN-UP. This did not exist.
+   *
+   * `loginWithPassword` above only ever authenticated a pre-existing row, and
+   * the only thing that ever wrote a passwordHash was `db/seed-admin.ts`, run
+   * by hand. So on a fresh deployment there was no way for a real person to
+   * create a durable account at all: Google/Apple need credentials the
+   * operator may not have set, and the guest button mints a throwaway.
+   *
+   * When the caller is currently signed in as a GUEST, this UPGRADES that
+   * guest row in place rather than creating a second account - so the trips
+   * they just built in the demo survive. That was the other half of the gap:
+   * the UI promised "sign in to keep it" and nothing implemented "keep it".
+   */
+  register: publicQuery
+    .input(
+      z.object({
+        email: z.string().email().max(320),
+        // 10 chars minimum. Length beats composition rules for scrypt-hashed
+        // secrets, and we deliberately do not impose symbol/case requirements.
+        password: z.string().min(10).max(200),
+        name: z.string().trim().min(1).max(120).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const email = input.email.trim().toLowerCase();
+      const db = getDb();
+
+      const existing = await findUserByEmail(email);
+      if (existing?.passwordHash) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "An account with that email already exists. Try signing in.",
+        });
+      }
+
+      const passwordHash = await hashPassword(input.password);
+      const caller = ctx.user;
+      const isGuestCaller = caller != null && caller.unionId.startsWith("guest-");
+
+      let unionId: string;
+
+      if (existing) {
+        // An OAuth account (or a pending invite row) already holds this email
+        // but has no password. Attach one rather than refusing - the person
+        // demonstrably controls the address they signed up with.
+        unionId = existing.unionId;
+        await db
+          .update(schema.users)
+          .set({ passwordHash, name: existing.name ?? input.name ?? null })
+          .where(eq(schema.users.id, existing.id));
+      } else if (isGuestCaller) {
+        // Upgrade the guest in place: same row, same id, so every trip,
+        // expense and membership they created in the demo carries over.
+        unionId = caller.unionId;
+        await db
+          .update(schema.users)
+          .set({ email, passwordHash, name: input.name ?? caller.name ?? null })
+          .where(eq(schema.users.id, caller.id));
+      } else {
+        unionId = `email-${crypto.randomUUID()}`;
+        await upsertUser({
+          unionId,
+          email,
+          passwordHash,
+          name: input.name ?? email.split("@")[0]!,
+          lastSignInAt: new Date(),
+        });
+      }
+
+      const user = await findUserByUnionId(unionId);
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Could not create the account" });
+      }
+
+      // Same claim-on-login behaviour as the password path, so an invite sent
+      // to this address before signup attaches immediately.
+      await claimPendingTripInvites(user.id, email);
+      await claimPendingFriendParticipations(user.id, email);
+
+      const token = await signSessionToken({ unionId, clientId: env.appId });
+      const opts = getSessionCookieOptions(ctx.req.headers);
+      ctx.resHeaders.append(
+        "set-cookie",
+        cookie.serialize(Session.cookieName, token, {
+          httpOnly: opts.httpOnly,
+          path: opts.path,
+          sameSite: opts.sameSite?.toLowerCase() as "lax" | "none",
+          secure: opts.secure,
+          maxAge: Session.maxAgeMs / 1000,
+        }),
+      );
+
+      const { passwordHash: _hidden, ...payload } = user;
+      return { ...payload, upgradedFromGuest: isGuestCaller && !existing };
+    }),
+
+  /** Is this session a throwaway guest? Drives the "save your trips" nudge. */
+  isGuest: publicQuery.query(({ ctx }) => ({
+    isGuest: ctx.user != null && ctx.user.unionId.startsWith("guest-"),
+    signedIn: ctx.user != null,
+  })),
 });

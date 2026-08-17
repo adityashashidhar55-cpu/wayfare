@@ -78,7 +78,12 @@ export default function Login() {
   const [providers, setProviders] = useState<ProviderAvailability | null>(null);
   const [credEmail, setCredEmail] = useState("");
   const [credPassword, setCredPassword] = useState("");
+  const [credName, setCredName] = useState("");
   const [credError, setCredError] = useState<string | null>(null);
+  /* r26: this form was sign-in only, because no sign-up existed on the
+     server at all. Now it toggles, and defaults to Create account - a new
+     visitor has nothing to sign in to. */
+  const [credMode, setCredMode] = useState<"signup" | "signin">("signup");
   const guestLogin = trpc.auth.guestLogin.useMutation({
     onSuccess: () => {
       window.location.href = "/trips";
@@ -94,6 +99,16 @@ export default function Login() {
     },
     onError: (e) => setCredError(e.message || "Could not sign in. Try again."),
   });
+  /* Creating an account while signed in as a guest UPGRADES that guest row,
+     so trips built in the demo carry over instead of being orphaned. */
+  const register = trpc.auth.register.useMutation({
+    onSuccess: () => {
+      const next = new URLSearchParams(window.location.search).get("next");
+      window.location.href = next && next.startsWith("/") ? next : "/trips";
+    },
+    onError: (e) => setCredError(e.message || "Could not create the account. Try again."),
+  });
+  const credBusy = passwordLogin.isPending || register.isPending;
 
   /* Referral: stash /login?ref=<code> so it survives the OAuth round trip
      and can be claimed by useAuth once the new account is signed in. */
@@ -218,10 +233,13 @@ export default function Login() {
             />
           </div>
 
-          {/* Credentials sign-in (admin), subtle; OAuth/demo stay primary */}
+          {/* Email account. r26: was sign-in only against a hand-seeded admin
+              row; there is now a real register mutation behind this. */}
           <div className="my-7 flex items-center gap-4">
             <span className="h-px flex-1 bg-border" />
-            <span className="type-caption uppercase tracking-[0.12em] text-ink-3">or sign in with email</span>
+            <span className="type-caption uppercase tracking-[0.12em] text-ink-3">
+              {credMode === "signup" ? "or create an account" : "or sign in with email"}
+            </span>
             <span className="h-px flex-1 bg-border" />
           </div>
 
@@ -230,10 +248,29 @@ export default function Login() {
             onSubmit={(e) => {
               e.preventDefault();
               setCredError(null);
-              passwordLogin.mutate({ email: credEmail, password: credPassword });
+              if (credMode === "signup") {
+                register.mutate({
+                  email: credEmail,
+                  password: credPassword,
+                  name: credName.trim() || undefined,
+                });
+              } else {
+                passwordLogin.mutate({ email: credEmail, password: credPassword });
+              }
             }}
           >
             <div className="space-y-2.5">
+              {credMode === "signup" && (
+                <input
+                  type="text"
+                  autoComplete="name"
+                  placeholder="Your name (optional)"
+                  aria-label="Your name"
+                  value={credName}
+                  onChange={(e) => setCredName(e.target.value)}
+                  className="type-small h-10 w-full rounded-md border border-border bg-bg px-3 text-ink placeholder:text-ink-3 focus:border-brand focus:outline-none"
+                />
+              )}
               <input
                 type="email"
                 required
@@ -247,8 +284,9 @@ export default function Login() {
               <input
                 type="password"
                 required
-                autoComplete="current-password"
-                placeholder="Password"
+                minLength={credMode === "signup" ? 10 : 1}
+                autoComplete={credMode === "signup" ? "new-password" : "current-password"}
+                placeholder={credMode === "signup" ? "Password (at least 10 characters)" : "Password"}
                 aria-label="Password"
                 value={credPassword}
                 onChange={(e) => setCredPassword(e.target.value)}
@@ -257,21 +295,39 @@ export default function Login() {
             </div>
             <button
               type="submit"
-              disabled={passwordLogin.isPending}
+              disabled={credBusy}
               className="type-small mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border-strong bg-surface-2 font-medium text-ink transition-all duration-fast hover:bg-surface active:scale-[0.98] disabled:opacity-60"
             >
-              {passwordLogin.isPending ? (
+              {credBusy ? (
                 <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
               ) : (
                 <Mail className="h-4 w-4" strokeWidth={1.75} />
               )}
-              {passwordLogin.isPending ? "Signing in…" : "Sign in with email"}
+              {credBusy
+                ? credMode === "signup"
+                  ? "Creating account…"
+                  : "Signing in…"
+                : credMode === "signup"
+                  ? "Create account"
+                  : "Sign in with email"}
             </button>
             {credError && (
               <p className="type-caption mt-2.5 rounded-md bg-ochre-soft px-3 py-2 text-center text-ink">
                 {credError}
               </p>
             )}
+            <button
+              type="button"
+              onClick={() => {
+                setCredMode(credMode === "signup" ? "signin" : "signup");
+                setCredError(null);
+              }}
+              className="type-caption mt-3 w-full text-center text-ink-3 transition-colors hover:text-ink"
+            >
+              {credMode === "signup"
+                ? "Already have an account? Sign in"
+                : "New here? Create an account"}
+            </button>
           </form>
 
           <p className="type-caption mt-8 text-center leading-relaxed text-ink-3">

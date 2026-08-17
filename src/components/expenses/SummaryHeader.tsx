@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
-import { Check, Crown, Pencil, Plus, ReceiptText, Mail, RefreshCw, X } from 'lucide-react';
+import { Check, Crown, Pencil, Plus, Mail, RefreshCw, X } from 'lucide-react';
 import type { Trip, TripMember } from '@contracts/types';
 import { CURRENCY_SYMBOLS, FX_PER_USD, convertCents, formatMoney } from '@contracts/fx';
 import { trpc } from '@/providers/trpc';
@@ -263,7 +263,7 @@ function PerPersonCard({
 
 /* ----------------------------- Quick add card ----------------------------- */
 
-function QuickAddCard({ onAdd }: { onAdd: () => void }) {
+function QuickAddCard({ onAdd, tripId, isVoyager }: { onAdd: () => void; tripId: number; isVoyager: boolean }) {
   const navigate = useNavigate();
   return (
     <motion.div
@@ -281,22 +281,21 @@ function QuickAddCard({ onAdd }: { onAdd: () => void }) {
         <span className="text-[15px] font-semibold text-ink">Add expense</span>
         <span className="type-caption text-ink-2">Log it in 5 seconds</span>
       </button>
+      {/* r26: "Scan receipt" was advertised here and implemented nowhere - no
+          OCR code exists in the repo - so it has been removed rather than left
+          as a button that sells a feature we do not have. "Import from email"
+          IS real (api/bookings-router.ts), so it now goes to the actual flow
+          for Voyagers instead of bouncing them to a plan they already bought. */}
       <div className="mt-3 space-y-1 border-t border-brand/20 pt-3">
-        {[
-          { icon: ReceiptText, label: 'Scan receipt' },
-          { icon: Mail, label: 'Import from email' },
-        ].map(({ icon: Icon, label }) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => navigate('/pricing')}
-            className="type-small flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-ink-2 transition-colors hover:bg-surface/60 hover:text-ink"
-          >
-            <Icon className="h-4 w-4" strokeWidth={1.75} />
-            <span className="flex-1 text-left">{label}</span>
-            <Crown className="h-3.5 w-3.5 text-ochre" strokeWidth={1.75} />
-          </button>
-        ))}
+        <button
+          type="button"
+          onClick={() => navigate(isVoyager ? `/trips/${tripId}/bookings` : '/pricing')}
+          className="type-small flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-ink-2 transition-colors hover:bg-surface/60 hover:text-ink"
+        >
+          <Mail className="h-4 w-4" strokeWidth={1.75} />
+          <span className="flex-1 text-left">Import from email</span>
+          {!isVoyager && <Crown className="h-3.5 w-3.5 text-ochre" strokeWidth={1.75} />}
+        </button>
       </div>
     </motion.div>
   );
@@ -318,11 +317,16 @@ export function SummaryHeader({
   onAdd: () => void;
 }) {
   const total = useMemo(() => expenses.reduce((s, e) => s + e.homeCents, 0), [expenses]);
+  // Email import is a real, Voyager-gated feature; route paying users to it
+  // rather than back to the pricing page they already converted on.
+  const meQ = trpc.users.me.useQuery();
+  const isVoyager = meQ.data?.isPremium === true;
+  const tripId = trip.id;
   return (
     <div className="grid gap-6 min-[900px]:grid-cols-12">
       <TotalCard trip={trip} expenses={expenses} playCount={playCount} />
       <PerPersonCard members={members} expenses={expenses} home={trip.homeCurrency} total={total} />
-      <QuickAddCard onAdd={onAdd} />
+      <QuickAddCard onAdd={onAdd} tripId={tripId} isVoyager={isVoyager} />
     </div>
   );
 }

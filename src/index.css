@@ -218,3 +218,86 @@
     -webkit-mask-image: linear-gradient(90deg, transparent, black 64px, black calc(100% - 64px), transparent);
   }
 }
+
+/* ─── Print / "Save as PDF" (r26) ──────────────────────────────────────────
+   "PDF itinerary export" is sold as a Voyager feature and had no
+   implementation anywhere - the button linked to /pricing even for people who
+   had already paid. Rather than add a PDF library we render for the browser's
+   own print pipeline, which produces a real PDF via "Save as PDF", works
+   offline and adds zero bytes to the bundle.
+
+   Anything chrome-like is hidden; the document itself is set in ink on white
+   so it does not burn a cartridge or come out unreadable in dark mode. */
+@media print {
+  /* Force the light palette regardless of the user's theme. */
+  :root,
+  :root.dark {
+    color-scheme: light !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #1a1614 !important;
+  }
+
+  /* App chrome never belongs on paper. */
+  nav,
+  header[data-app-chrome],
+  aside,
+  footer,
+  .no-print,
+  [data-print="hide"],
+  button:not([data-print="keep"]),
+  a[href="/pricing"],
+  [role="dialog"],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+
+  /* Let content run the full page. */
+  main,
+  section,
+  article {
+    box-shadow: none !important;
+    border-color: #ddd !important;
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  /* Keep a stop, a day or an expense row from splitting across pages. */
+  li,
+  tr,
+  [data-print-block] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Show link targets so a printed itinerary stays useful. */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 10px;
+    color: #666;
+    word-break: break-all;
+  }
+
+  /* Maps and video are noise on paper. */
+  canvas,
+  video,
+  iframe,
+  .maplibregl-map {
+    display: none !important;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
