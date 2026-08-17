@@ -240,7 +240,7 @@ export default function PlaceDetailDialog({
               {/* r25: photo credit. Wikimedia/Wikipedia images are mostly
                   CC-BY-SA, which requires crediting the author wherever the
                   image appears. We were storing photoAttribution and never
-                  showing it. Only rendered for a real photo of this place —
+                  showing it. Only rendered for a real photo of this place -
                   the stock-pool fallback is a generic image of somewhere else
                   and must never carry a credit implying otherwise. */}
               {place.photoSource && place.photoAttribution && imgLoaded && (

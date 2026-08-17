@@ -27,7 +27,7 @@ interface CuratedGetaway {
   lng: number;
   category: "natural" | "historic" | "adventure";
   tags: string[];
-  rating: number;
+  rating: number | null;
   blurb: string;
 }
 

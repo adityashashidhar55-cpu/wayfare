@@ -23,7 +23,7 @@ describe("feedScoreSql", () => {
     // style overlap + tag overlap + rating + hidden + affordability + style penalty
     expect(s).toContain("10 *");
     expect(s).toContain("4 * LEAST(3,");
-    expect(s).toContain("COALESCE(`explore_places`.`rating`, 4)");
+    expect(s).toContain("COALESCE(`explore_places`.`rating`, 0)");
     expect(s).toContain("1.5 * `explore_places`.`hidden`");
     expect(s).toContain("COALESCE(`explore_places`.`priceLevel`, 2) <= ?");
     expect(s).toContain("-100 * (1 - ");

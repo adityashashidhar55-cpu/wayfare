@@ -119,7 +119,7 @@ function MintInviteButton({ session }: { session: Session }) {
           url={link}
           label={`invite link for ${session.title}`}
           copiedLabel="Invite link copied, it admits one friend"
-          shareText={`Planning "${session.title}" on Wayfare — add the dates you're free and we'll find a weekend that works for everyone:`}
+          shareText={`Planning "${session.title}" on Wayfare - add the dates you're free and we'll find a weekend that works for everyone:`}
           className="mt-2"
         />
       )}

@@ -72,10 +72,25 @@ describe("pickFamousEateries, fame rule thresholds", () => {
       { id: 4, rating: null, verdict: "worth-it", photoSource: "osm", descriptionSource: "composed" },
     ];
     const famous = pickFamousEateries(candidates);
+    // The fallback respects the same quota as the rating path: with only 4
+    // candidates fameQuota is 1, so exactly the first quality row qualifies.
+    // What matters is that a real photo + researched description wins, and
+    // that an untouched import (composed description, no photo) never does.
     expect(famous.has(1)).toBe(true);
-    expect(famous.has(2)).toBe(true);
     expect(famous.has(3)).toBe(false);
     expect(famous.has(4)).toBe(false);
+  });
+
+  it("respects the quota when several candidates pass the quality fallback", () => {
+    // 25 candidates -> fameQuota = ceil(25 * 0.08) = 2
+    const candidates: FameCandidate[] = Array.from({ length: 25 }, (_, i) => ({
+      id: i + 1,
+      rating: null,
+      verdict: "worth-it",
+      photoSource: "wikipedia",
+      descriptionSource: "dbpedia",
+    }));
+    expect(pickFamousEateries(candidates).size).toBe(2);
   });
 
   it("does not use the quality fallback when real ratings exist", () => {

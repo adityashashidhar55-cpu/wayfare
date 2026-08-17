@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserAvatar } from '@/components/UserAvatar';
-import { computeBalances, simplifyDebts, type Debt, type ExpenseWithSplits } from './utils';
+import { computeBalances, simplifyDebts, type ExpenseWithSplits } from './utils';
 import { trpc } from '@/providers/trpc';
 import { toast } from './toast';
 
@@ -38,7 +38,7 @@ export function BalancesCard({
   const { data: settlements } = trpc.trips.settlements.useQuery({ tripId });
   const addSettlement = trpc.trips.addSettlement.useMutation({
     onSuccess: () => utils.trips.settlements.invalidate({ tripId }),
-    onError: (e) => toast(e.message || 'Could not save that settlement', { tone: 'error' }),
+    onError: (e) => toast(e.message || 'Could not save that settlement', { tone: 'danger' }),
   });
   const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
 
@@ -190,7 +190,7 @@ export function BalancesCard({
                                     },
                                     {
                                       onSuccess: () =>
-                                        toast('Settled — everyone on the trip can see it', {
+                                        toast('Settled - everyone on the trip can see it', {
                                           tone: 'success',
                                         }),
                                     },
