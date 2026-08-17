@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wayfare · Every journey, beautifully planned</title>
+    <meta name="description" content="Wayfare unites your map, itinerary, budget, and favorite people in one calm workspace, so planning feels like the first day of the trip." />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#BC5934" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Wayfare" />
+    <meta property="og:title" content="Wayfare · Every journey, beautifully planned" />
+    <meta property="og:description" content="Map-first itineraries, fair expense splitting, and an Explore feed tuned to your taste." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Geist:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Set theme before first paint (stored preference, else system)
+      (function () {
+        try {
+          var stored = localStorage.getItem('wayfare-theme');
+          var dark = stored
+            ? stored === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

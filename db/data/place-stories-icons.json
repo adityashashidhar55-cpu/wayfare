@@ -1,0 +1,182 @@
+[
+  {
+    "name": "Prague Castle",
+    "city": "Prague",
+    "country": "Czechia",
+    "lat": 50.0911,
+    "lng": 14.4016,
+    "category": "activity",
+    "story": "Prague Castle has been the seat of Czech rulers for over a thousand years, since Prince Borivoj built its first palace around 880. Kings of Bohemia, Holy Roman emperors and, since 1918, Czech presidents have all governed from this hill above the Vltava, and the Guinness Book lists it as the largest ancient castle complex in the world.\n\nAt its heart rises St. Vitus Cathedral, begun under Charles IV in 1344 and finished only in 1929 - look for the stained glass by Alphonse Mucha. Wander the Golden Lane's tiny coloured houses, then walk down through the gardens for the classic view over the red roofs of Mala Strana. Arrive at opening time; the crowds build fast by midday."
+  },
+  {
+    "name": "Charles Bridge",
+    "city": "Prague",
+    "country": "Czechia",
+    "lat": 50.0865,
+    "lng": 14.4114,
+    "category": "activity",
+    "story": "Charles IV laid the foundation stone of this bridge in 1357 - legend says the moment was chosen by astrologers for its palindrome of lucky numbers. Attributed to the architect Peter Parler, its sixteen sandstone arches replaced the flood-ruined Judith Bridge and carried Prague's only river crossing for more than four centuries.\n\nThe thirty Baroque statues arrived in the 17th and 18th centuries; the oldest, St. John of Nepomuk from 1683, is the one visitors touch for luck. Cross at dawn when the bridge belongs to the statues and the mist, climb the Old Town bridge tower for the view, and come back after dark to see the castle lit above the water."
+  },
+  {
+    "name": "Karnak Temple Complex",
+    "city": "Luxor",
+    "country": "Egypt",
+    "lat": 25.7188,
+    "lng": 32.6573,
+    "category": "activity",
+    "story": "Karnak was not built so much as grown: for roughly two thousand years, from the Middle Kingdom to the Roman era, pharaoh after pharaoh added pylons, obelisks and halls to this vast precinct of Amun-Ra. It remains the largest religious complex of the ancient world, covering ground that would swallow several cathedrals.\n\nIts heart is the Great Hypostyle Hall, raised by Seti I and Ramesses II, where 134 papyrus-shaped columns still tower over twenty metres, their capitals wide enough to hold fifty men. Walk the avenue of sphinxes towards Luxor Temple, pause by the sacred lake, and come early - the stone holds the heat long after the crowds arrive."
+  },
+  {
+    "name": "Luxor Temple",
+    "city": "Luxor",
+    "country": "Egypt",
+    "lat": 25.6995,
+    "lng": 32.6391,
+    "category": "activity",
+    "story": "Founded around 1400 BCE, largely by Amenhotep III, Luxor Temple was the southern shrine of the god Amun, where his statue journeyed each year from Karnak for the Opet festival. Ramesses II added the great pylon with its colossi and twin obelisks; one of those obelisks has stood in the Place de la Concorde in Paris since 1836.\n\nEvery age left a layer here: Alexander the Great claimed his divinity within these walls, Romans garrisoned it, early Christians painted a chapel, and the mosque of Abu Haggag still rises from the ancient court, its doorway marking the street level of the living town. Return after sunset, when the columns glow floodlit against the Nile dusk."
+  },
+  {
+    "name": "Valley of the Kings",
+    "city": "Luxor",
+    "country": "Egypt",
+    "lat": 25.7402,
+    "lng": 32.6014,
+    "category": "activity",
+    "story": "For five hundred years of the New Kingdom, Egypt's pharaohs traded pyramids for secrecy, cutting their tombs deep into this barren valley beneath a natural pyramid-shaped peak. More than sixty tombs have been found here, from simple pits to the hundred-corridor splendour of Seti I, their walls still brilliant with painted books of the underworld.\n\nThe valley's most famous find came in 1922, when Howard Carter uncovered the nearly intact tomb of the boy king Tutankhamun, a discovery that stunned the world. Your ticket admits three tombs - choose at least one of the richly painted royal ones, consider the separate Tutankhamun ticket, and go early before the heat and the tour buses."
+  },
+  {
+    "name": "Acropolis Museum",
+    "city": "Athens",
+    "country": "Greece",
+    "lat": 37.9685,
+    "lng": 23.7284,
+    "category": "activity",
+    "story": "Opened in 2009, this museum was built to house everything found on the Acropolis rock - and to make the case that the Parthenon marbles belong together. Glass floors reveal the excavated neighbourhood of ancient Athens beneath your feet, and escalators carry you up through layers of Archaic sculpture with smiles that are twenty-five centuries old.\n\nThe top-floor Parthenon Gallery is aligned exactly with the temple itself, visible through the glass wall: the surviving frieze and metopes are displayed in their original order, the gaps waiting beside them. The original Caryatids from the Erechtheion stand here too, one plinth pointedly empty. Buy tickets ahead and allow a full morning; the cafe terrace faces the rock."
+  },
+  {
+    "name": "Pantheon",
+    "city": "Rome",
+    "country": "Italy",
+    "lat": 41.8986,
+    "lng": 12.4768,
+    "category": "activity",
+    "story": "Nearly two thousand years after Hadrian rebuilt it around 118-125 CE, the Pantheon still holds the record nobody has broken: the largest unreinforced concrete dome on earth, a perfect hemisphere spanning 43 metres. The inscription credits Agrippa, whose earlier temple stood here - Hadrian modestly kept the old name and the old facade line.\n\nLight falls through the nine-metre oculus, the only opening in the dome, sweeping the marble interior like a slow sundial; when it rains, the floor's hidden drains quietly take the water. Consecrated as a church in 609, it also guards the tomb of Raphael. Entry is by small paid ticket now - go early, stand in the shaft of light, and look straight up."
+  },
+  {
+    "name": "Trevi Fountain",
+    "city": "Rome",
+    "country": "Italy",
+    "lat": 41.9009,
+    "lng": 12.4833,
+    "category": "activity",
+    "story": "The Trevi stands where three roads met - tre vie - at the end of the Aqua Virgo aqueduct, built in 19 BCE and still feeding the fountain today. Nicola Salvi designed the theatrical cascade of rock and water in 1732; it was finished thirty years later, with Oceanus riding his shell chariot across the whole facade of the Palazzo Poli.\n\nTradition says a coin tossed over your shoulder guarantees your return to Rome, and the world believes it: around three thousand euros are swept from the basin every day, and the money goes to charity. Anita Ekberg waded through this water in La Dolce Vita. Come at daybreak to see it nearly empty, and again at night when the travertine glows."
+  },
+  {
+    "name": "Uffizi Gallery",
+    "city": "Florence",
+    "country": "Italy",
+    "lat": 43.7678,
+    "lng": 11.2553,
+    "category": "activity",
+    "story": "Cosimo I de' Medici commissioned these offices - uffizi - from Giorgio Vasari in 1560, and the family began filling the long galleries with their collections. When the Medici line died out, Anna Maria Luisa's pact of 1737 gave it all to Florence forever, and the palace became one of the first great public museums in the world.\n\nHere are Botticelli's Birth of Venus and Primavera, Leonardo's Annunciation, Michelangelo's only finished panel painting, and rooms of Caravaggio, Raphael and Titian - a census of the Renaissance under one roof. Book a timed slot weeks ahead in summer, take the first entrance of the day, and pause on the upper terrace for the framed view of the Arno and Palazzo Vecchio."
+  },
+  {
+    "name": "Park Güell",
+    "city": "Barcelona",
+    "country": "Spain",
+    "lat": 41.4145,
+    "lng": 2.1527,
+    "category": "activity",
+    "story": "Park Guell began as a failure. Around 1900 the industrialist Eusebi Guell bought a bare hill above Barcelona and asked Antoni Gaudi to design a gated garden city of sixty villas; buyers never came, only two houses were built, and in 1926 the city opened the grounds to everyone as a park.\n\nWhat Gaudi left behind is pure imagination: the dragon fountain of broken-tile mosaic guarding the staircase, the hypostyle hall whose eighty-six columns carry a plaza edged by the serpentine bench, and stone viaducts that grow out of the hillside like something geological. Entry to the monumental zone is timed and limited - reserve ahead, and stay for the view across the city to the sea."
+  },
+  {
+    "name": "Grand Palace & Wat Phra Kaew",
+    "city": "Bangkok",
+    "country": "Thailand",
+    "lat": 13.75,
+    "lng": 100.4913,
+    "category": "activity",
+    "story": "When Rama I founded Bangkok in 1782, he raised this walled city within the city as the seat of the new Chakri dynasty, and Thai kings lived and ruled here for a century and a half. Within the same compound stands Wat Phra Kaew, the Temple of the Emerald Buddha - the small jasper figure above the high altar is the most sacred image in Thailand.\n\nOnly the king himself may touch it, climbing up three times a year to change its seasonal robes of gold. Around the cloistered walls run 178 painted panels of the Ramakien epic, and every surface glitters with gold leaf, coloured glass and porcelain. Dress code is strict - long trousers, covered shoulders - and the midday heat on the bare courtyards is real, so come at opening time."
+  },
+  {
+    "name": "Wat Pho (Temple of the Reclining Buddha)",
+    "city": "Bangkok",
+    "country": "Thailand",
+    "lat": 13.7463,
+    "lng": 100.4927,
+    "category": "activity",
+    "story": "Wat Pho is older than Bangkok itself, a royal temple since Ayutthaya times, and the city's largest. Rama III rebuilt it in the 1830s as Thailand's first public university, its walls inscribed with lessons in medicine, history and literature - and added the colossal Reclining Buddha, forty-six metres of gilded brick and plaster showing the Buddha entering nirvana.\n\nThe soles of the statue's feet are inlaid with mother-of-pearl in 108 auspicious scenes. The temple is also the birthplace of traditional Thai massage, and its school still teaches it - you can book a session in the open-air pavilion. It sits just south of the Grand Palace; go early, and drop coins in the 108 bronze bowls along the chapel wall for luck."
+  },
+  {
+    "name": "Wat Arun (Temple of Dawn)",
+    "city": "Bangkok",
+    "country": "Thailand",
+    "lat": 13.7437,
+    "lng": 100.4889,
+    "category": "activity",
+    "story": "Wat Arun's Khmer-style prang rises over seventy metres above the Chao Phraya's west bank, encrusted with a mosaic of Chinese porcelain and seashells that catches the first light - which is why they call it the Temple of Dawn. The temple stood here before Bangkok did, and for a time it sheltered the Emerald Buddha before the image crossed the river to Wat Phra Kaew.\n\nRama II and Rama III gave the spire its present height in the early 19th century; the steep outer stairs can still be climbed partway for a river view. Take the little cross-river ferry from Tha Tien pier, come at sunrise or late afternoon, and linger to watch the silhouette sharpen against the dusk."
+  },
+  {
+    "name": "Fushimi Inari Shrine",
+    "city": "Kyoto",
+    "country": "Japan",
+    "lat": 34.9671,
+    "lng": 135.7727,
+    "category": "activity",
+    "story": "Fushimi Inari is the head shrine of Inari, the Shinto deity of rice and prosperity, founded on this mountainside in 711 - centuries before Kyoto became the capital. Foxes serve as Inari's messengers, and their stone statues guard the paths, keys and rice sheaves held in their mouths.\n\nWhat draws the world are the torii: some ten thousand vermilion gates donated by worshippers and businesses, packed so tightly on the lower trails they form glowing tunnels. The full loop to the summit of Mount Inari climbs for about two hours through forest and sub-shrines, thinning to silence as the crowds drop away. Entry is free and the shrine never closes - go at dawn or dusk for the gates nearly to yourself."
+  },
+  {
+    "name": "Meiji Shrine",
+    "city": "Tokyo",
+    "country": "Japan",
+    "lat": 35.6764,
+    "lng": 139.6993,
+    "category": "activity",
+    "story": "A hundred thousand trees stand between Harajuku's neon and this shrine - all of them planted by hand. When Emperor Meiji died in 1912, people from every part of Japan donated the trees and young volunteers planted them, creating an artificial forest that now feels centuries old. The shrine itself was completed in 1921 and lovingly rebuilt in 1958 after wartime fire.\n\nWalk the broad gravel approach under the great cypress torii, past walls of sake barrels and Burgundy wine casks offered to the imperial spirits, and you may catch a Shinto wedding procession crossing the courtyard. At New Year some three million people come for hatsumode, the busiest shrine visit in Japan; on any ordinary morning you can have the forest paths almost alone."
+  },
+  {
+    "name": "Todai-ji Great Buddha",
+    "city": "Nara",
+    "country": "Japan",
+    "lat": 34.6889,
+    "lng": 135.8398,
+    "category": "activity",
+    "story": "In 752, after years of casting that reportedly drew on nearly all of Japan's bronze, the Great Buddha of Todai-ji was dedicated before a court that had emptied the treasury for it. The seated Vairocana Buddha is fifteen metres tall, and the hall that shelters it - though rebuilt in 1709 at only two-thirds its original width - is still among the largest wooden buildings on earth.\n\nEmperor Shomu founded the temple as the head of all provincial temples, a statement of Buddhism as the state's protector. Sika deer, held sacred as messengers of the gods, wander Nara Park right up to the great south gate and its fierce guardian statues. Look for the pillar with a hole the size of the Buddha's nostril: squeezing through is said to bring enlightenment."
+  },
+  {
+    "name": "Schönbrunn Palace",
+    "city": "Vienna",
+    "country": "Austria",
+    "lat": 48.1845,
+    "lng": 16.3122,
+    "category": "activity",
+    "story": "Schonbrunn was the Habsburgs' summer answer to Versailles, a 1,441-room palace shaped above all by Empress Maria Theresa in the 1740s and 50s. A six-year-old Mozart played for her in these rooms in 1762; a century later Franz Joseph was born here, and here he died, in 1916, after sixty-eight years on the throne.\n\nNapoleon made the palace his Vienna headquarters twice, and in 1961 Kennedy and Khrushchev held their tense summit within its walls. Behind the state rooms stretch the baroque gardens up to the Gloriette, and on the grounds stands the Tiergarten, open since 1752 and the oldest continuously operating zoo in the world. Book the first tour slot of the day, then climb to the Gloriette terrace for coffee above the whole golden facade."
+  },
+  {
+    "name": "Belém Tower",
+    "city": "Lisbon",
+    "country": "Portugal",
+    "lat": 38.6916,
+    "lng": -9.216,
+    "category": "activity",
+    "story": "Built between 1514 and 1520 to guard the mouth of the Tagus, the Belem Tower is the stone signature of Portugal's Age of Discovery - the fortress that the great fleets, da Gama's among them, passed on their way out to India and home again. Its architect, Francisco de Arruda, had worked in Morocco, and the watchtowers' domed turrets carry that Moorish memory.\n\nIt has served as a customs post, a telegraph station and a political prison; the great earthquake of 1755 shifted the riverbank, so a tower built in mid-channel now stands almost at the shore. UNESCO-listed since 1983, it pairs naturally with the Jeronimos Monastery ten minutes away - go at opening time and climb to the upper terrace before the queue forms."
+  },
+  {
+    "name": "Jerónimos Monastery",
+    "city": "Lisbon",
+    "country": "Portugal",
+    "lat": 38.6979,
+    "lng": -9.206,
+    "category": "activity",
+    "story": "Manuel I founded this monastery in 1501 on the spot where Vasco da Gama's crew spent their last night in prayer before sailing to India, and he paid for it with the Crown's cut of the spice trade - pepper money, they called it. Building ran for a century, and the result is the supreme monument of the Manueline style, stone carved into ropes, coral and sails.\n\nThe two-storey cloister, each arch different, is one of the most beautiful spaces in Europe; in the church lie da Gama himself and the poet Luis de Camoes, whose Lusiads sang the voyage. UNESCO-listed since 1983, the monastery queues grow long by mid-morning - arrive at opening, then walk the waterfront to Belem Tower and finish with the warm custard tarts the neighbourhood invented."
+  },
+  {
+    "name": "Bayon Temple",
+    "city": "Siem Reap",
+    "country": "Cambodia",
+    "lat": 13.4413,
+    "lng": 103.8588,
+    "category": "activity",
+    "story": "At the exact centre of Angkor Thom, the last great capital of the Khmer Empire, Jayavarman VII raised the Bayon around 1200 as his state temple. From the jungle it looks like a mountain of weathered stone; step closer and the mountain resolves into towers - more than fifty of them - and every tower into four giant faces, two hundred in all, smiling down with closed eyes.\n\nScholars still argue whether the faces are the bodhisattva Avalokiteshvara, the Buddha, or the god-king himself. Around the base run a kilometre of bas-reliefs: naval battles on the Tonle Sap, market scenes, processions, a whole civilization carved in stone. Come early in the morning when the faces catch the low sun and the upper terraces are nearly empty, then continue to Ta Prohm's root-bound walls."
+  }
+]

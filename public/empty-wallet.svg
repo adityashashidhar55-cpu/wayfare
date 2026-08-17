@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 180" width="240" height="180" fill="none" role="img" aria-label="Empty wallet illustration">
+  <!-- surface-2 blob backdrop -->
+  <path d="M120 22 C166 22 206 52 210 94 C214 134 178 162 118 162 C62 162 28 138 30 96 C32 54 72 22 120 22 Z" fill="#8A8175" fill-opacity="0.08"/>
+  <g stroke="#8A8175" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- receipt sticking out -->
+    <path d="M96 84 L96 46 L102 50 L108 46 L114 50 L120 46 L126 50 L132 46 L132 84"/>
+    <path d="M104 60 L124 60"/>
+    <path d="M104 68 L118 68"/>
+    <!-- open wallet body -->
+    <path d="M70 96 C70 89 75 84 82 84 L158 84 C165 84 170 89 170 96 L170 128 C170 135 165 140 158 140 L82 140 C75 140 70 135 70 128 Z"/>
+    <path d="M70 96 L170 96"/>
+    <!-- clasp -->
+    <circle cx="152" cy="118" r="4"/>
+    <!-- coins -->
+    <circle cx="58" cy="128" r="9"/>
+    <!-- dashed divider baseline -->
+    <path d="M44 154 L196 154" stroke-dasharray="1.5 7"/>
+  </g>
+  <!-- brand accent coin -->
+  <g stroke="#BC5934" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="186" cy="120" r="11"/>
+    <path d="M186 115 L186 125"/>
+    <path d="M182.5 117.5 L189.5 117.5"/>
+  </g>
+</svg>

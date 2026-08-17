@@ -1,0 +1,220 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Wayfare tokens - Light (design.md §3.1) */
+    --bg: #FAF7F1;
+    --bg-subtle: #F3EEE5;
+    --surface: #FFFFFF;
+    --surface-2: #F8F4EC;
+    --glass: rgba(255, 255, 255, 0.72);
+    --glass-strong: rgba(255, 255, 255, 0.88);
+    --border: #E9E1D3;
+    --border-strong: #DACFB9;
+    --ink: #1C1917;
+    --ink-2: #57504A;
+    --ink-3: #8A8175;
+    --brand: #BC5934;
+    --brand-strong: #A84E2B;
+    --brand-soft: #F6E5DB;
+    --brand-ink: #FFFFFF;
+    --pine: #44604F;
+    --pine-soft: #E5EDE6;
+    --ochre: #B98A2E;
+    --ochre-soft: #F6ECD6;
+    --danger: #C0523F;
+    --success: #4C8A5F;
+    --info: #5B7C99;
+
+    /* Gradients (§3.4) */
+    --grad-hero: radial-gradient(1200px 600px at 70% 20%, #F6E5DB 0%, #F3EEE5 45%, transparent 70%);
+    --grad-cta: linear-gradient(135deg, #BC5934 0%, #B98A2E 100%);
+
+    /* Shadows (§5) */
+    --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.05);
+    --shadow-md: 0 2px 6px rgba(28, 25, 23, 0.05), 0 12px 32px -8px rgba(28, 25, 23, 0.10);
+    --shadow-lg: 0 4px 12px rgba(28, 25, 23, 0.06), 0 24px 64px -16px rgba(28, 25, 23, 0.18);
+
+    /* Motion (§7.1) */
+    --ease-expo: cubic-bezier(.22, 1, .36, 1);
+    --ease-spring-soft: cubic-bezier(.34, 1.4, .64, 1);
+    --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+
+    --radius: 12px;
+  }
+
+  .dark {
+    /* Wayfare tokens - Dark (warm charcoal) */
+    --bg: #16130F;
+    --bg-subtle: #1C1712;
+    --surface: #221D17;
+    --surface-2: #2A241C;
+    --glass: rgba(34, 29, 23, 0.66);
+    --glass-strong: rgba(30, 25, 20, 0.85);
+    --border: rgba(245, 240, 232, 0.09);
+    --border-strong: rgba(245, 240, 232, 0.16);
+    --ink: #F5F0E8;
+    --ink-2: #C7BFB2;
+    --ink-3: #8D8577;
+    --brand: #D97B54;
+    --brand-strong: #E18A63;
+    --brand-soft: rgba(217, 123, 84, 0.14);
+    --brand-ink: #1C1917;
+    --pine: #82AC92;
+    --pine-soft: rgba(130, 172, 146, 0.14);
+    --ochre: #D9AC55;
+    --ochre-soft: rgba(217, 172, 85, 0.14);
+    --danger: #D97766;
+    --success: #7DBB8F;
+    --info: #8FA9C4;
+
+    --grad-hero: radial-gradient(1200px 600px at 70% 20%, rgba(217, 123, 84, 0.10) 0%, transparent 70%);
+    --grad-cta: linear-gradient(135deg, #D97B54 0%, #D9AC55 100%);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.35), 0 12px 32px -8px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4), 0 24px 64px -16px rgba(0, 0, 0, 0.6);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: #fff;
+    color: var(--ink);
+    font-family: Geist, ui-sans-serif, system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 24px;
+    overflow-x: hidden;
+    transition: background-color 250ms ease, color 250ms ease;
+  }
+
+  ::selection {
+    background: var(--brand-soft);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--brand) 40%, transparent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Lenis smooth-scroll recommended styles */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+  .lenis.lenis-stopped { overflow: hidden; }
+}
+
+@layer components {
+  /* ---------- Typography (design.md §4) ---------- */
+  .type-display-xl {
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 560;
+    font-size: clamp(44px, 6vw, 76px);
+    line-height: 1.04;
+    letter-spacing: -0.025em;
+  }
+  .type-display {
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 560;
+    font-size: clamp(36px, 4.5vw, 56px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+  .type-h1 {
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 560;
+    font-size: clamp(32px, 4vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .type-h2 {
+    font-weight: 650;
+    font-size: clamp(24px, 3vw, 28px);
+    line-height: 1.28;
+    letter-spacing: -0.015em;
+  }
+  .type-h3 {
+    font-weight: 650;
+    font-size: clamp(18px, 2.4vw, 20px);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+  }
+  .type-h4 { font-weight: 600; font-size: 16px; line-height: 24px; letter-spacing: -0.005em; }
+  .type-body-l { font-weight: 450; font-size: clamp(16px, 2vw, 17px); line-height: 1.65; }
+  .type-body { font-weight: 450; font-size: 15px; line-height: 24px; }
+  .type-small { font-weight: 500; font-size: 13px; line-height: 20px; }
+  .type-caption { font-weight: 600; font-size: 11px; line-height: 16px; letter-spacing: 0.02em; }
+  .type-eyebrow {
+    font-weight: 650;
+    font-size: 11px;
+    line-height: 16px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .type-numeral {
+    font-weight: 650;
+    font-feature-settings: "tnum" 1, "cv05" 1;
+  }
+  .serif-em {
+    font-family: Fraunces, Georgia, serif;
+    font-style: italic;
+    font-weight: 480;
+  }
+  .tnum { font-feature-settings: "tnum" 1, "cv05" 1; }
+
+  /* ---------- Surfaces ---------- */
+  .glass {
+    background: var(--glass);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  }
+  .glass-strong {
+    background: var(--glass-strong);
+    backdrop-filter: blur(16px) saturate(1.4);
+    -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  }
+
+  /* Editorial photography treatment (§3.4) */
+  .photo { filter: saturate(0.88) contrast(0.98) brightness(1); }
+  .dark .photo { filter: saturate(0.88) contrast(0.98) brightness(0.92); }
+
+  /* Global film grain overlay (§3.4) */
+  .grain-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image: url("/grain.png");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+    mix-blend-mode: overlay;
+    opacity: 0.045;
+  }
+  .dark .grain-overlay { mix-blend-mode: soft-light; opacity: 0.05; }
+
+  /* Primary-button sheen sweep (§7.2) */
+  .btn-sheen { position: relative; overflow: hidden; }
+  .btn-sheen::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; width: 40%;
+    left: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+    transform: translateX(-140%) skewX(-18deg);
+    pointer-events: none;
+  }
+  .btn-sheen:hover::after { animation: sheen 600ms ease-out; }
+
+  /* Marquee fade mask (home §S5) */
+  .marquee-mask {
+    mask-image: linear-gradient(90deg, transparent, black 64px, black calc(100% - 64px), transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 64px, black calc(100% - 64px), transparent);
+  }
+}

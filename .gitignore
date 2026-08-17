@@ -1,0 +1,39 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Env — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+*.apk
+*.aab
+public/downloads/*.apk
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+.gradle/
+
+# Editor / OS
+.vscode/*
+.idea/
+.DS_Store
+Thumbs.db
+*.sw?
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test / coverage
+coverage/
+.vitest/
+
+# Cloudflare
+.wrangler/
+.dev.vars

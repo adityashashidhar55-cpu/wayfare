@@ -1,0 +1,528 @@
+[
+  {
+    "city": "Paris",
+    "country": "France",
+    "dish": "Croissant",
+    "blurb": "Buttery, shattering Viennoiserie, the Parisian breakfast icon.",
+    "places": [
+      {
+        "name": "Du Pain et des Idées",
+        "lat": 48.8712,
+        "lng": 2.3629,
+        "why": "Benchmark croissant in a 19th-century boulangerie."
+      },
+      {
+        "name": "Blé Sucré",
+        "lat": 48.8506,
+        "lng": 2.3767,
+        "why": "Lamination legend near Bastille."
+      },
+      {
+        "name": "Pierre Hermé",
+        "lat": 48.8622,
+        "lng": 2.3641,
+        "why": "Haute-pâtisserie croissant."
+      },
+      {
+        "name": "Carette",
+        "lat": 48.8637,
+        "lng": 2.2872,
+        "why": "Classic salon de thé off the Place des Vosges."
+      }
+    ]
+  },
+  {
+    "city": "Paris",
+    "country": "France",
+    "dish": "Steak-frites",
+    "blurb": "Entrecôte, crisp frites and a secret sauce. Paris bistro canon.",
+    "places": [
+      {
+        "name": "Le Relais de l'Entrecôte",
+        "lat": 48.8546,
+        "lng": 2.3328,
+        "why": "Single-menu steak-frites institution."
+      },
+      {
+        "name": "Bistrot Paul Bert",
+        "lat": 48.8522,
+        "lng": 2.3849,
+        "why": "Benchmark bistro steak-frites."
+      },
+      {
+        "name": "Le Severo",
+        "lat": 48.832,
+        "lng": 2.3245,
+        "why": "Butcher-owned, dry-aged beef."
+      }
+    ]
+  },
+  {
+    "city": "Paris",
+    "country": "France",
+    "dish": "Macarons",
+    "blurb": "Ganache-filled almond-meringue shells in every colour.",
+    "places": [
+      {
+        "name": "Ladurée",
+        "lat": 48.8685,
+        "lng": 2.3237,
+        "why": "Inventor of the double-decker macaron."
+      },
+      {
+        "name": "Pierre Hermé",
+        "lat": 48.8622,
+        "lng": 2.3641,
+        "why": "The 'Picasso of pastry'."
+      },
+      {
+        "name": "Sadaharu Aoki",
+        "lat": 48.8594,
+        "lng": 2.3063,
+        "why": "Japanese-French precision macarons."
+      }
+    ]
+  },
+  {
+    "city": "Paris",
+    "country": "France",
+    "dish": "Soupe à l'oignon",
+    "blurb": "Caramelized-onion broth under a gratinéed cheese crust.",
+    "places": [
+      {
+        "name": "Au Pied de Cochon",
+        "lat": 48.8635,
+        "lng": 2.3438,
+        "why": "24/7 Les Halles classic since 1947."
+      },
+      {
+        "name": "La Jacobine",
+        "lat": 48.8533,
+        "lng": 2.339,
+        "why": "Beloved Saint-Germain onion soup."
+      }
+    ]
+  },
+  {
+    "city": "Paris",
+    "country": "France",
+    "dish": "Jambon-beurre",
+    "blurb": "The Parisian ham-and-butter baguette sandwich.",
+    "places": [
+      {
+        "name": "Caractère de Cochon",
+        "lat": 48.8627,
+        "lng": 2.3624,
+        "why": "Marais shop devoted to the jambon-beurre."
+      },
+      {
+        "name": "Chez Aline",
+        "lat": 48.8571,
+        "lng": 2.3785,
+        "why": "Natural-wine spot's cult sandwich."
+      }
+    ]
+  },
+  {
+    "city": "Lyon",
+    "country": "France",
+    "dish": "Quenelles",
+    "blurb": "Pike dumplings in creamy Nantua sauce. Lyonnaise comfort.",
+    "places": [
+      {
+        "name": "Café Comptoir Abel",
+        "lat": 45.7541,
+        "lng": 4.8259,
+        "why": "Among the oldest bouchons; textbook quenelles."
+      },
+      {
+        "name": "Brasserie Georges",
+        "lat": 45.7483,
+        "lng": 4.8283,
+        "why": "Vast 1836 brasserie classic."
+      }
+    ]
+  },
+  {
+    "city": "Lyon",
+    "country": "France",
+    "dish": "Salade lyonnaise",
+    "blurb": "Frisée, lardons, croutons and a poached egg.",
+    "places": [
+      {
+        "name": "Daniel et Denise",
+        "lat": 45.7624,
+        "lng": 4.8472,
+        "why": "MOF chef's bouchon staple."
+      },
+      {
+        "name": "Le Bouchon des Filles",
+        "lat": 45.7687,
+        "lng": 4.8293,
+        "why": "Modern all-in bouchon menu."
+      }
+    ]
+  },
+  {
+    "city": "Lyon",
+    "country": "France",
+    "dish": "Coussin de Lyon",
+    "blurb": "Marzipan-and-chocolate ganache cushion, a Lyonnaise sweet.",
+    "places": [
+      {
+        "name": "Voisin",
+        "lat": 45.731,
+        "lng": 4.8874,
+        "why": "Invented the coussin in 1960."
+      },
+      {
+        "name": "Pralus",
+        "lat": 45.7443,
+        "lng": 4.8701,
+        "why": "Lyon praline and coussin maker."
+      }
+    ]
+  },
+  {
+    "city": "Marseille",
+    "country": "France",
+    "dish": "Bouillabaisse",
+    "blurb": "Saffron fish stew with rouille. Marseille's soul.",
+    "places": [
+      {
+        "name": "Chez Fonfon",
+        "lat": 43.2855,
+        "lng": 5.3514,
+        "why": "Vallon des Auffes harbour classic."
+      },
+      {
+        "name": "Le Rhul",
+        "lat": 43.2802,
+        "lng": 5.3538,
+        "why": "Old-school bouillabaisse authority."
+      },
+      {
+        "name": "Miramar",
+        "lat": 43.3644,
+        "lng": 5.3278,
+        "why": "Old Port institution."
+      }
+    ]
+  },
+  {
+    "city": "Marseille",
+    "country": "France",
+    "dish": "Navettes",
+    "blurb": "Orange-blossom boat-shaped biscuits of Candlemas.",
+    "places": [
+      {
+        "name": "Le Four des Navettes",
+        "lat": 43.2907,
+        "lng": 5.3664,
+        "why": "Marseille's oldest bakery, since 1781."
+      },
+      {
+        "name": "Les Navettes des Accoules",
+        "lat": 43.2971,
+        "lng": 5.3663,
+        "why": "Le Panier biscuitier keeping the recipe alive."
+      }
+    ]
+  },
+  {
+    "city": "Nice",
+    "country": "France",
+    "dish": "Socca",
+    "blurb": "Blistered chickpea-flour pancake, eaten hot by hand.",
+    "places": [
+      {
+        "name": "Chez Pipo",
+        "lat": 43.6651,
+        "lng": 7.214,
+        "why": "The socca reference since 1923."
+      },
+      {
+        "name": "Chez Thérésa",
+        "lat": 43.6971,
+        "lng": 7.2773,
+        "why": "Cours Saleya market socca legend."
+      },
+      {
+        "name": "Lou Pilha Leva",
+        "lat": 43.6981,
+        "lng": 7.2767,
+        "why": "Counter-service Niçoise staples."
+      }
+    ]
+  },
+  {
+    "city": "Nice",
+    "country": "France",
+    "dish": "Salade niçoise",
+    "blurb": "Tomatoes, tuna, anchovy, olives, no cooked vegetables, purists insist.",
+    "places": [
+      {
+        "name": "Le Safari",
+        "lat": 43.6957,
+        "lng": 7.2763,
+        "why": "Cours Saleya classic."
+      },
+      {
+        "name": "Acchiardo",
+        "lat": 43.6965,
+        "lng": 7.2771,
+        "why": "Family-run Niçoise kitchen."
+      }
+    ]
+  },
+  {
+    "city": "Nice",
+    "country": "France",
+    "dish": "Pissaladière",
+    "blurb": "Caramelized-onion tart with anchovies and olives.",
+    "places": [
+      {
+        "name": "La Merenda",
+        "lat": 43.6965,
+        "lng": 7.2731,
+        "why": "Tiny no-phone Niçoise legend."
+      },
+      {
+        "name": "Lou Pilha Leva",
+        "lat": 43.6981,
+        "lng": 7.2767,
+        "why": "Old-town counter for Niçoise snacks."
+      },
+      {
+        "name": "Chez Pipo",
+        "lat": 43.6651,
+        "lng": 7.214,
+        "why": "Also known for pissaladière and tourte de blettes."
+      }
+    ]
+  },
+  {
+    "city": "Bordeaux",
+    "country": "France",
+    "dish": "Canelé",
+    "blurb": "Caramelized-crust, custardy rum-and-vanilla fluted cake.",
+    "places": [
+      {
+        "name": "Baillardran",
+        "lat": 44.8436,
+        "lng": -0.5743,
+        "why": "The canelé house of Bordeaux."
+      },
+      {
+        "name": "La Toque Cuivrée",
+        "lat": 44.8257,
+        "lng": -0.5574,
+        "why": "Artisan canelé specialist."
+      }
+    ]
+  },
+  {
+    "city": "Bordeaux",
+    "country": "France",
+    "dish": "Entrecôte à la bordelaise",
+    "blurb": "Rib steak in a red-wine-and-shallot sauce.",
+    "places": [
+      {
+        "name": "Brasserie Bordelaise",
+        "lat": 44.8412,
+        "lng": -0.573,
+        "why": "Regional-produce brasserie."
+      },
+      {
+        "name": "Le Bouchon Bordelais",
+        "lat": 44.8419,
+        "lng": -0.573,
+        "why": "Classic bordelaise cooking."
+      }
+    ]
+  },
+  {
+    "city": "Strasbourg",
+    "country": "France",
+    "dish": "Tarte flambée",
+    "blurb": "Thin-crust Alsatian flammekueche with crème fraîche, onion and lardons.",
+    "places": [
+      {
+        "name": "Flam's",
+        "lat": 48.5784,
+        "lng": 7.7528,
+        "why": "Dedicated tarte flambée house."
+      },
+      {
+        "name": "Le Clou",
+        "lat": 48.5827,
+        "lng": 7.7491,
+        "why": "Cosy winstub for flammekueche."
+      },
+      {
+        "name": "Au Brasseur",
+        "lat": 48.5826,
+        "lng": 7.7555,
+        "why": "Old-town brewpub tarte flambée."
+      }
+    ]
+  },
+  {
+    "city": "Strasbourg",
+    "country": "France",
+    "dish": "Choucroute",
+    "blurb": "Sauerkraut piled with sausages and charcuterie.",
+    "places": [
+      {
+        "name": "Maison Kammerzell",
+        "lat": 48.582,
+        "lng": 7.7498,
+        "why": "1427 landmark by the cathedral."
+      },
+      {
+        "name": "Au Pont Corbeau",
+        "lat": 48.579,
+        "lng": 7.7503,
+        "why": "Traditional winstub choucroute."
+      }
+    ]
+  },
+  {
+    "city": "Toulouse",
+    "country": "France",
+    "dish": "Cassoulet",
+    "blurb": "Slow-baked white beans with duck confit and Toulouse sausage.",
+    "places": [
+      {
+        "name": "Le Colombier",
+        "lat": 43.6086,
+        "lng": 1.4476,
+        "why": "Cassoulet reference since 1873."
+      },
+      {
+        "name": "Le Genty Magre",
+        "lat": 43.6015,
+        "lng": 1.4452,
+        "why": "Modern bistro famed for its cassoulet."
+      },
+      {
+        "name": "Le Bibent",
+        "lat": 43.6038,
+        "lng": 1.4434,
+        "why": "Grand brasserie on the Capitole."
+      }
+    ]
+  },
+  {
+    "city": "Nantes",
+    "country": "France",
+    "dish": "Gâteau nantais",
+    "blurb": "Moist rum-and-almond cake with a rum glaze.",
+    "places": [
+      {
+        "name": "La Cigale",
+        "lat": 47.2128,
+        "lng": -1.5621,
+        "why": "Opulent 1895 brasserie on Place Graslin."
+      },
+      {
+        "name": "Maison Larnicol",
+        "lat": 47.2133,
+        "lng": -1.5591,
+        "why": "Breton-Loire artisan biscuitier."
+      }
+    ]
+  },
+  {
+    "city": "Lille",
+    "country": "France",
+    "dish": "Carbonnade flamande",
+    "blurb": "Beer-braised beef stew, sweet-sour with gingerbread.",
+    "places": [
+      {
+        "name": "Au Vieux de la Vieille",
+        "lat": 50.6409,
+        "lng": 3.0614,
+        "why": "Old-town estaminet classic."
+      },
+      {
+        "name": "Le Barbier qui fume",
+        "lat": 50.6402,
+        "lng": 3.077,
+        "why": "Smokehouse bistro's Flemish stew."
+      },
+      {
+        "name": "Estaminet La Chandelle",
+        "lat": 50.6413,
+        "lng": 3.0622,
+        "why": "Traditional Vieux-Lille estaminet."
+      }
+    ]
+  },
+  {
+    "city": "Lille",
+    "country": "France",
+    "dish": "Merveilleux",
+    "blurb": "Meringue-and-cream cakes rolled in chocolate shavings, a Lille sweet.",
+    "places": [
+      {
+        "name": "Aux Merveilleux de Fred",
+        "lat": 50.6272,
+        "lng": 3.0491,
+        "why": "Lille-born merveilleux specialist."
+      },
+      {
+        "name": "Meert",
+        "lat": 50.6377,
+        "lng": 3.0618,
+        "why": "Historic Vieux-Lille pâtissier (gaufres, too)."
+      }
+    ]
+  },
+  {
+    "city": "Montpellier",
+    "country": "France",
+    "dish": "Fougasse",
+    "blurb": "Provençal flatbread, savoury with olives or sweet with orange blossom.",
+    "places": [
+      {
+        "name": "Halles Castellane",
+        "lat": 43.6101,
+        "lng": 3.8768,
+        "why": "Covered-market bakers selling fougasse."
+      },
+      {
+        "name": "Halles Laissac",
+        "lat": 43.6061,
+        "lng": 3.8766,
+        "why": "Montpellier's newer food hall with artisan bakers."
+      }
+    ]
+  },
+  {
+    "city": "Montpellier",
+    "country": "France",
+    "dish": "Tielle sétoise",
+    "blurb": "Spicy octopus-and-tomato pie from nearby Sète.",
+    "places": [
+      {
+        "name": "Chez François",
+        "lat": 43.4018,
+        "lng": 3.697,
+        "why": "Canal-side tielle since 1946."
+      },
+      {
+        "name": "Paradiso",
+        "lat": 43.4038,
+        "lng": 3.6967,
+        "why": "Sète's tielle institution."
+      },
+      {
+        "name": "Cianni",
+        "lat": 43.4023,
+        "lng": 3.6954,
+        "why": "Family tielle maker on the quay."
+      }
+    ]
+  }
+]

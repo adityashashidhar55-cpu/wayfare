@@ -1,0 +1,620 @@
+[
+  {
+    "city": "Bengaluru",
+    "country": "India",
+    "dish": "Filter coffee",
+    "blurb": "Strong, frothy, endlessly refilled. Bengaluru runs on it.",
+    "places": [
+      {
+        "name": "Mavalli Tiffin Room (MTR)",
+        "lat": 12.9550389,
+        "lng": 77.5854279,
+        "why": "The 1924 institution that codified the tiffin room"
+      },
+      {
+        "name": "Brahmin's Coffee Bar",
+        "lat": 12.9539396,
+        "lng": 77.5688104,
+        "why": "Shankarpuram's tiny counter with the city's most feared decoction"
+      },
+      {
+        "name": "CTR (Central Tiffin Room)",
+        "lat": 12.9982568,
+        "lng": 77.5694946,
+        "why": "Malleshwaram's benne-dosa hall pours a mean tumbler too"
+      }
+    ]
+  },
+  {
+    "city": "Bengaluru",
+    "country": "India",
+    "dish": "Masala dosa",
+    "blurb": "Crisp, ghee-roasted, potato-filled, the tiffin room's masterpiece.",
+    "places": [
+      {
+        "name": "Vidyarthi Bhavan",
+        "lat": 12.9450065,
+        "lng": 77.5714721,
+        "why": "Basavanagudi's 1943 dosa temple"
+      },
+      {
+        "name": "Mavalli Tiffin Room (MTR)",
+        "lat": 12.9550389,
+        "lng": 77.5854279,
+        "why": "Still the reference dosa after a century"
+      },
+      {
+        "name": "CTR (Central Tiffin Room)",
+        "lat": 12.9982568,
+        "lng": 77.5694946,
+        "why": "The benne (butter) dosa benchmark"
+      }
+    ]
+  },
+  {
+    "city": "Bengaluru",
+    "country": "India",
+    "dish": "Idli-vada",
+    "blurb": "Cloud-soft idlis and crisp vadas drowned in chutney, breakfast of champions.",
+    "places": [
+      {
+        "name": "Veena Stores",
+        "lat": 13.0056696,
+        "lng": 77.5692888,
+        "why": "Margosa Road's standing-room idli legend"
+      },
+      {
+        "name": "Brahmin's Coffee Bar",
+        "lat": 12.9539396,
+        "lng": 77.5688104,
+        "why": "Idli-vada and filter coffee, no chairs needed"
+      }
+    ]
+  },
+  {
+    "city": "Bengaluru",
+    "country": "India",
+    "dish": "Bisibelebath",
+    "blurb": "Hot, gooey rice-lentil-vegetable comfort with a ghee raft on top.",
+    "places": [
+      {
+        "name": "Mavalli Tiffin Room (MTR)",
+        "lat": 12.9550389,
+        "lng": 77.5854279,
+        "why": "MTR bottled the masala; the original is here"
+      },
+      {
+        "name": "Vidyarthi Bhavan",
+        "lat": 12.9450065,
+        "lng": 77.5714721,
+        "why": "Friday-only bisibelebath that sells out by 9am"
+      }
+    ]
+  },
+  {
+    "city": "Mumbai",
+    "country": "India",
+    "dish": "Vada pav",
+    "blurb": "Mumbai's burger: batata vada in a pav with three chutneys, eaten on the move.",
+    "places": [
+      {
+        "name": "Ashok Vada Pav",
+        "lat": 19.0205197,
+        "lng": 72.8313766,
+        "why": "Dadar's off-Kirti-College legend since the 1970s"
+      },
+      {
+        "name": "Aaram Vada Pav",
+        "lat": 18.9398,
+        "lng": 72.8355,
+        "why": "The CST classic opposite Capitol Cinema"
+      }
+    ]
+  },
+  {
+    "city": "Mumbai",
+    "country": "India",
+    "dish": "Pav bhaji",
+    "blurb": "Butter-mashed vegetables on a roaring tawa, mopped up with fried pav.",
+    "places": [
+      {
+        "name": "Haji Ali Juice Centre",
+        "lat": 18.9784,
+        "lng": 72.8112,
+        "why": "The Haji Ali junction late-night pav-bhaji-and-juice institution"
+      },
+      {
+        "name": "Cream Centre",
+        "lat": 18.9556,
+        "lng": 72.8133,
+        "why": "Chowpatty's 1958 veg legend, pav bhaji with a sea breeze"
+      }
+    ]
+  },
+  {
+    "city": "Mumbai",
+    "country": "India",
+    "dish": "Bombay sandwich",
+    "blurb": "Beet, potato, cucumber, mint chutney, grilled, the street's green marvel.",
+    "places": [
+      {
+        "name": "Mafco Farm Fair",
+        "lat": 18.9985532,
+        "lng": 72.8116496,
+        "why": "Worli's 1970s sandwich-window legend"
+      },
+      {
+        "name": "Sandwizzaa",
+        "lat": 19.060772,
+        "lng": 72.829496,
+        "why": "Bandra's grilled-sandwich pioneer"
+      }
+    ]
+  },
+  {
+    "city": "Mumbai",
+    "country": "India",
+    "dish": "Cutting chai",
+    "blurb": "Half-glass, full-strength, the Irani café's gift to the city's rhythm.",
+    "places": [
+      {
+        "name": "Yazdani Bakery",
+        "lat": 18.9330785,
+        "lng": 72.8335542,
+        "why": "Fort's 1950 bakery-café, chai with brun maska"
+      },
+      {
+        "name": "Sassanian Boulangerie",
+        "lat": 18.9427789,
+        "lng": 72.8269322,
+        "why": "Dhobi Talao's 1913 Irani bakery, steps from Metro Cinema"
+      }
+    ]
+  },
+  {
+    "city": "Delhi",
+    "country": "India",
+    "dish": "Chole bhature",
+    "blurb": "Pillowy bhature with dark, spiced chickpeas. Delhi's definitive breakfast.",
+    "places": [
+      {
+        "name": "Chache Di Hatti",
+        "lat": 28.6823173,
+        "lng": 77.2060242,
+        "why": "Kamla Nagar's student-fuelled legend"
+      },
+      {
+        "name": "Giani's di Hatti",
+        "lat": 28.6579313,
+        "lng": 77.2232559,
+        "why": "Chandni Chowk's 1956 chole-bhature-and-rabri-faluda institution"
+      }
+    ]
+  },
+  {
+    "city": "Delhi",
+    "country": "India",
+    "dish": "Butter chicken",
+    "blurb": "Tandoori chicken in a silken tomato-butter gravy, invented in Delhi.",
+    "places": [
+      {
+        "name": "Moti Mahal Delux",
+        "lat": 28.6468875,
+        "lng": 77.2399805,
+        "why": "Daryaganj, where butter chicken was born"
+      },
+      {
+        "name": "Gulati",
+        "lat": 28.6078499,
+        "lng": 77.2300673,
+        "why": "Pandara Road's buttery pilgrimage site"
+      }
+    ]
+  },
+  {
+    "city": "Delhi",
+    "country": "India",
+    "dish": "Paranthe wali gali",
+    "blurb": "A Chandni Chowk lane that fries stuffed paranthas in ghee, since the 1870s.",
+    "places": [
+      {
+        "name": "Pandit Gaya Prasad Shiv Charan",
+        "lat": 28.6559829,
+        "lng": 77.2304096,
+        "why": "The lane's founding parantha house (1872)"
+      },
+      {
+        "name": "Pandit Kanhaiya Lal Durga Prasad Dixit",
+        "lat": 28.6560678,
+        "lng": 77.2303749,
+        "why": "Rabri-and-parantha rivals since 1875"
+      }
+    ]
+  },
+  {
+    "city": "Delhi",
+    "country": "India",
+    "dish": "Chaat",
+    "blurb": "Dahi bhalla, aloo tikki, papdi, sweet, sour, crunchy anarchy.",
+    "places": [
+      {
+        "name": "Natraj Dahi Bhalla Corner",
+        "lat": 28.6564538,
+        "lng": 77.2304966,
+        "why": "Chandni Chowk's dahi-bhalla institution since 1940"
+      },
+      {
+        "name": "Shree Balaji Chaat Bhandar",
+        "lat": 28.6563366,
+        "lng": 77.2318879,
+        "why": "The papdi-chaat counter Delhiites cross the city for"
+      }
+    ]
+  },
+  {
+    "city": "Jaipur",
+    "country": "India",
+    "dish": "Pyaaz kachori",
+    "blurb": "Flaky, fiery onion-stuffed kachori. Jaipur's morning fuel.",
+    "places": [
+      {
+        "name": "Rawat Mishthan Bhandar",
+        "lat": 26.921112,
+        "lng": 75.796593,
+        "why": "The Station Road pyaaz-kachori benchmark"
+      },
+      {
+        "name": "Laxmi Misthan Bhandar (LMB)",
+        "lat": 26.9196343,
+        "lng": 75.8254983,
+        "why": "Johari Bazaar's grand old sweet house fries a great kachori too"
+      }
+    ]
+  },
+  {
+    "city": "Jaipur",
+    "country": "India",
+    "dish": "Laal maas",
+    "blurb": "Rajasthan's fiery red mutton curry, tamed with handkerchiefs and ghee.",
+    "places": [
+      {
+        "name": "Spice Court",
+        "lat": 26.9108905,
+        "lng": 75.7889678,
+        "why": "Civil Lines' courtyard classic for royal recipes"
+      },
+      {
+        "name": "Niros",
+        "lat": 26.9162948,
+        "lng": 75.811478,
+        "why": "MI Road's 1949 dining institution"
+      }
+    ]
+  },
+  {
+    "city": "Jaipur",
+    "country": "India",
+    "dish": "Ghewar",
+    "blurb": "Honeycomb disc of flour and ghee soaked in syrup. Jaipur's festive sweet.",
+    "places": [
+      {
+        "name": "Laxmi Misthan Bhandar (LMB)",
+        "lat": 26.9196343,
+        "lng": 75.8254983,
+        "why": "Johari Bazaar's 1727 sweet house"
+      },
+      {
+        "name": "Doodh Misthan Bhandar",
+        "lat": 26.9313342,
+        "lng": 75.800266,
+        "why": "The old city's beloved desi-ghee sweet shop"
+      }
+    ]
+  },
+  {
+    "city": "Goa",
+    "country": "India",
+    "dish": "Fish thali",
+    "blurb": "Rice, fish curry, fry, kismur, sol kadi, the Goan lunchtime ritual.",
+    "places": [
+      {
+        "name": "Ritz Classic",
+        "lat": 15.4917262,
+        "lng": 73.8150251,
+        "why": "Panjim's definitive fish-curry-rice since 1978"
+      },
+      {
+        "name": "Vinayak Family Restaurant",
+        "lat": 15.5973457,
+        "lng": 73.7727543,
+        "why": "Assagao's no-frills thali locals swear by"
+      }
+    ]
+  },
+  {
+    "city": "Goa",
+    "country": "India",
+    "dish": "Bebinca",
+    "blurb": "Seven-layered coconut-milk-and-ghee queen of Goan desserts.",
+    "places": [
+      {
+        "name": "Infantaria",
+        "lat": 15.5465953,
+        "lng": 73.7604388,
+        "why": "Calangute's bakery-café with bebinca by the slice"
+      },
+      {
+        "name": "Mum's Kitchen",
+        "lat": 15.4872926,
+        "lng": 73.8128227,
+        "why": "Panjim's home-Goan-cooking champion, bebinca done right"
+      }
+    ]
+  },
+  {
+    "city": "Kochi",
+    "country": "India",
+    "dish": "Appam & stew",
+    "blurb": "Lace-edged rice hoppers with a mild coconut-milk stew. Kerala's gentle breakfast.",
+    "places": [
+      {
+        "name": "Gokul Oottupura",
+        "lat": 9.9694696,
+        "lng": 76.2827036,
+        "why": "Ernakulam's beloved veg mess for appam-stew"
+      },
+      {
+        "name": "Pai Dosa",
+        "lat": 9.979985,
+        "lng": 76.2837175,
+        "why": "The Ernakulam dosa-appam institution since 1961"
+      }
+    ]
+  },
+  {
+    "city": "Kochi",
+    "country": "India",
+    "dish": "Karimeen pollichathu",
+    "blurb": "Pearl-spot fish masala-grilled in a banana leaf, backwater Kerala on a plate.",
+    "places": [
+      {
+        "name": "Mullapanthal Toddy Shop",
+        "lat": 9.9082643,
+        "lng": 76.3617823,
+        "why": "Tripunithura's toddy-shop original, karimeen with kallu"
+      },
+      {
+        "name": "Seagull Restaurant",
+        "lat": 9.9692116,
+        "lng": 76.249905,
+        "why": "Fort Kochi's harbour-side seafood favourite"
+      }
+    ]
+  },
+  {
+    "city": "Chennai",
+    "country": "India",
+    "dish": "Filter coffee & idli",
+    "blurb": "Degree kaapi and sambar-soaked idlis. Mylapore mornings since forever.",
+    "places": [
+      {
+        "name": "Ratna Café",
+        "lat": 13.03232,
+        "lng": 80.268977,
+        "why": "Triplicane's 1948 idli-sambar institution"
+      },
+      {
+        "name": "Murugan Idli Shop",
+        "lat": 13.0453849,
+        "lng": 80.2328621,
+        "why": "T. Nagar's idli pilgrimage"
+      }
+    ]
+  },
+  {
+    "city": "Chennai",
+    "country": "India",
+    "dish": "Chettinad chicken",
+    "blurb": "Pepper-fennel-star-anise heat from Tamil Nadu's merchant kitchens.",
+    "places": [
+      {
+        "name": "Anjappar Chettinad Restaurant",
+        "lat": 12.9200835,
+        "lng": 80.1842749,
+        "why": "The 1964 Chettinad standard-bearer"
+      },
+      {
+        "name": "Ponnusamy Hotel",
+        "lat": 13.0609702,
+        "lng": 80.245495,
+        "why": "Egmore's banana-leaf mess classic"
+      }
+    ]
+  },
+  {
+    "city": "Hyderabad",
+    "country": "India",
+    "dish": "Hyderabadi biryani",
+    "blurb": "Kacchi dum biryani, saffron, mint, and sealed-pot magic.",
+    "places": [
+      {
+        "name": "Paradise Biryani",
+        "lat": 17.4414783,
+        "lng": 78.4873114,
+        "why": "The Secunderabad original (1953)"
+      },
+      {
+        "name": "Shadab Hotel",
+        "lat": 17.3687527,
+        "lng": 78.4755405,
+        "why": "Old City's high-ceilinged biryani hall"
+      },
+      {
+        "name": "Bawarchi",
+        "lat": 17.4063098,
+        "lng": 78.4974141,
+        "why": "RTC X Roads' cult counter since 1994"
+      }
+    ]
+  },
+  {
+    "city": "Hyderabad",
+    "country": "India",
+    "dish": "Haleem",
+    "blurb": "Ramadan's slow-pounded meat-wheat porridge. Hyderabad's seasonal obsession.",
+    "places": [
+      {
+        "name": "Pista House",
+        "lat": 17.356383,
+        "lng": 78.4734859,
+        "why": "The haleem heavyweight that ships worldwide"
+      },
+      {
+        "name": "Shah Ghouse Café",
+        "lat": 17.4266793,
+        "lng": 78.3764491,
+        "why": "The city's year-round biryani-and-haleem den"
+      }
+    ]
+  },
+  {
+    "city": "Hyderabad",
+    "country": "India",
+    "dish": "Irani chai & Osmania biscuits",
+    "blurb": "Dum-brewed sweet chai dunked with melt-away Osmania biscuits.",
+    "places": [
+      {
+        "name": "Café Niloufer",
+        "lat": 17.4005982,
+        "lng": 78.4628453,
+        "why": "Lakdi-ka-pul's legendary Irani chai house"
+      },
+      {
+        "name": "Nimrah Café & Bakery",
+        "lat": 17.361389,
+        "lng": 78.4742856,
+        "why": "Charminar-side chai since 1993"
+      }
+    ]
+  },
+  {
+    "city": "Kolkata",
+    "country": "India",
+    "dish": "Phuchka",
+    "blurb": "Crisp shells, spiced potato, tamarind fire-water. Kolkata's golgappa, but better.",
+    "places": [
+      {
+        "name": "Vivekananda Park Phuchkawala",
+        "lat": 22.5137,
+        "lng": 88.3593,
+        "why": "Southern Avenue's legendary phuchka cart"
+      },
+      {
+        "name": "Vardaan Market Phuchka",
+        "lat": 22.5482205,
+        "lng": 88.3537676,
+        "why": "The Camac Street stall office-goers queue at"
+      }
+    ]
+  },
+  {
+    "city": "Kolkata",
+    "country": "India",
+    "dish": "Kathi rolls",
+    "blurb": "Kebab rolled in paratha with onion and lime, invented here.",
+    "places": [
+      {
+        "name": "Nizam's",
+        "lat": 22.5621436,
+        "lng": 88.3535384,
+        "why": "The 1932 New Market birthplace of the kathi roll"
+      },
+      {
+        "name": "Kusum Rolls",
+        "lat": 22.5535422,
+        "lng": 88.3522664,
+        "why": "Park Street's beloved late-night roll counter"
+      }
+    ]
+  },
+  {
+    "city": "Kolkata",
+    "country": "India",
+    "dish": "Rosogolla",
+    "blurb": "Featherlight chhena balls in syrup. Bengal's sweet soul.",
+    "places": [
+      {
+        "name": "K.C. Das",
+        "lat": 22.56547,
+        "lng": 88.3515114,
+        "why": "Esplanade house of the rosogolla inventor's line"
+      },
+      {
+        "name": "Balaram Mullick & Radharaman Mullick",
+        "lat": 22.5522399,
+        "lng": 88.353005,
+        "why": "The 1885 sweet institution, still family-run"
+      }
+    ]
+  },
+  {
+    "city": "Kolkata",
+    "country": "India",
+    "dish": "Kosha mangsho",
+    "blurb": "Slow-darkened mutton curry. Sunday lunch, Bengali-style.",
+    "places": [
+      {
+        "name": "Bhojohori Manna",
+        "lat": 22.5202079,
+        "lng": 88.3608602,
+        "why": "The home-style Bengali chain's Hindustan Road original"
+      },
+      {
+        "name": "6 Ballygunge Place",
+        "lat": 22.5277993,
+        "lng": 88.3686373,
+        "why": "The heritage bungalow that made Bengali fine-dining"
+      }
+    ]
+  },
+  {
+    "city": "Agra",
+    "country": "India",
+    "dish": "Petha",
+    "blurb": "Translucent ash-gourd candy. Agra's sweet other than the Taj.",
+    "places": [
+      {
+        "name": "Panchhi Petha",
+        "lat": 27.1591979,
+        "lng": 78.0111546,
+        "why": "Agra's petha institution since 1926"
+      },
+      {
+        "name": "GMB (Gopaldas)",
+        "lat": 27.1666408,
+        "lng": 78.0010752,
+        "why": "The other old-guard petha-and-sweets house"
+      }
+    ]
+  },
+  {
+    "city": "Agra",
+    "country": "India",
+    "dish": "Bedai & jalebi",
+    "blurb": "Crisp dal-stuffed kachori with aloo sabzi, chased by hot jalebi. Agra's breakfast.",
+    "places": [
+      {
+        "name": "Deviram Sweets",
+        "lat": 27.1479838,
+        "lng": 78.0375445,
+        "why": "Agra's bedai-jalebi breakfast institution"
+      },
+      {
+        "name": "GMB (Gopaldas)",
+        "lat": 27.1666408,
+        "lng": 78.0010752,
+        "why": "Sadar Bazaar's all-day bedai stop"
+      }
+    ]
+  }
+]

@@ -1,0 +1,532 @@
+[
+  {
+    "city": "Berlin",
+    "country": "Germany",
+    "dish": "Currywurst",
+    "blurb": "Steamed-then-fried pork sausage under curry-ketchup and curry powder, invented in post-war Berlin and still the city's definitive street food.",
+    "places": [
+      {
+        "name": "Konnopke's Imbiss",
+        "lat": 52.54047,
+        "lng": 13.41222,
+        "why": "Serving currywurst under the U2 viaduct since 1930, the cult original."
+      },
+      {
+        "name": "Curry 36",
+        "lat": 52.49349,
+        "lng": 13.38769,
+        "why": "Kreuzberg's busiest currywurst counter on Mehringdamm, day and night."
+      },
+      {
+        "name": "Witty's Currywurst",
+        "lat": 52.52025,
+        "lng": 13.38811,
+        "why": "Organic-cult currywurst opposite Wittenbergplatz and KaDeWe."
+      },
+      {
+        "name": "Krasselt's Imbiss",
+        "lat": 52.4507,
+        "lng": 13.33961,
+        "why": "Steglitz institution famous for extra-crispy sausage and fierce queues."
+      }
+    ]
+  },
+  {
+    "city": "Berlin",
+    "country": "Germany",
+    "dish": "Döner Kebab",
+    "blurb": "The döner as the world knows it was assembled in 1970s Kreuzberg. Berlin still eats more of it than anywhere outside Turkey.",
+    "places": [
+      {
+        "name": "Mustafa's Gemüse Kebap",
+        "lat": 52.49345,
+        "lng": 13.38852,
+        "why": "The legendary vegetable döner with the hour-long Mehringdamm queue."
+      },
+      {
+        "name": "Imren Grill",
+        "lat": 52.55108,
+        "lng": 13.35045,
+        "why": "Neukölln purist favourite, hand-stacked veal döner since the 1980s."
+      },
+      {
+        "name": "Rüyam Gemüse Kebab",
+        "lat": 52.5405,
+        "lng": 13.41255,
+        "why": "Prenzlauer Berg's answer to Mustafa's, with fresh-baked bread."
+      },
+      {
+        "name": "Hasir Schöneberg",
+        "lat": 52.4977,
+        "lng": 13.35409,
+        "why": "From the Kreuzberg family credited with popularising döner in Berlin."
+      }
+    ]
+  },
+  {
+    "city": "Berlin",
+    "country": "Germany",
+    "dish": "Berliner Pfannkuchen",
+    "blurb": "Berlin's jam-filled, sugar-dusted yeast doughnut, simply 'Pfannkuchen' here, and a bakery rite of passage.",
+    "places": [
+      {
+        "name": "Bäckerei Siebert",
+        "lat": 52.55292,
+        "lng": 13.40825,
+        "why": "Prenzlauer Berg's oldest bakery (1906), frying pfannkuchen in the back room."
+      },
+      {
+        "name": "Konditorei Buchwald",
+        "lat": 52.52123,
+        "lng": 13.34768,
+        "why": "Moabit institution since 1852, famous for baumkuchen and jam pfannkuchen."
+      }
+    ]
+  },
+  {
+    "city": "Munich",
+    "country": "Germany",
+    "dish": "Weißwurst & Brezn",
+    "blurb": "Poached veal-and-parsley sausage with sweet mustard and a fresh pretzel, eaten before noon, never with the skin.",
+    "places": [
+      {
+        "name": "Weisses Bräuhaus im Tal",
+        "lat": 48.1364,
+        "lng": 11.57842,
+        "why": "Munich's textbook weißwurst breakfast hall, Schneider Weisse on tap."
+      },
+      {
+        "name": "Zum Franziskaner",
+        "lat": 48.13934,
+        "lng": 11.57724,
+        "why": "Old-town tavern where the weißwurst arrives in steaming tureens."
+      },
+      {
+        "name": "Andechser am Dom",
+        "lat": 48.13824,
+        "lng": 11.57377,
+        "why": "Abbey-brewery tavern behind the Frauenkirche with morning weißwurst sets."
+      }
+    ]
+  },
+  {
+    "city": "Munich",
+    "country": "Germany",
+    "dish": "Schweinshaxe",
+    "blurb": "Crackling-skinned roast pork knuckle with potato dumplings and dark-beer gravy, the beer-hall main event.",
+    "places": [
+      {
+        "name": "Haxnbauer",
+        "lat": 48.13548,
+        "lng": 11.58065,
+        "why": "The haxe specialist, knuckles turning on the grill in the window."
+      },
+      {
+        "name": "Augustiner-Keller",
+        "lat": 48.14351,
+        "lng": 11.55196,
+        "why": "Munich's beloved beer garden and cellar, haxe under chestnut trees."
+      },
+      {
+        "name": "Hofbräuhaus München",
+        "lat": 48.14329,
+        "lng": 11.69858,
+        "why": "The world's most famous beer hall; touristy, yes, but the haxe is serious."
+      }
+    ]
+  },
+  {
+    "city": "Munich",
+    "country": "Germany",
+    "dish": "Obatzda",
+    "blurb": "Ripened-camembert cheese spread with butter, paprika and onion, the essential beer-garden snack with a Brezn.",
+    "places": [
+      {
+        "name": "Chinesischer Turm Biergarten",
+        "lat": 48.15312,
+        "lng": 11.59333,
+        "why": "Englischer Garten's landmark beer garden; obatzda under the pagoda."
+      },
+      {
+        "name": "Seehaus im Englischen Garten",
+        "lat": 48.16052,
+        "lng": 11.59833,
+        "why": "Lakeside beer garden on the Kleinhesseloher See for obatzda at sunset."
+      },
+      {
+        "name": "Hirschgarten",
+        "lat": 48.14355,
+        "lng": 11.51947,
+        "why": "The world's biggest beer garden: 8,000 seats and steins from the self-service taps."
+      }
+    ]
+  },
+  {
+    "city": "Hamburg",
+    "country": "Germany",
+    "dish": "Fischbrötchen",
+    "blurb": "Crusty roll stuffed with pickled herring, matjes or fried fish, onions and remoulade. Hamburg's harbourside fast food.",
+    "places": [
+      {
+        "name": "Brücke 10",
+        "lat": 53.54571,
+        "lng": 9.96343,
+        "why": "Cult fish-roll shack on the Landungsbrücken piers with harbour views."
+      },
+      {
+        "name": "Altonaer Fischmarkt",
+        "lat": 53.54447,
+        "lng": 9.93836,
+        "why": "Sunday-morning market since 1703, fischbrötchen to a live-band soundtrack."
+      },
+      {
+        "name": "Underdocks",
+        "lat": 53.55735,
+        "lng": 9.96591,
+        "why": "St. Pauli fish-street-food bar putting proper fish in every roll."
+      }
+    ]
+  },
+  {
+    "city": "Hamburg",
+    "country": "Germany",
+    "dish": "Labskaus",
+    "blurb": "Sailor's hash of corned beef, potato and beetroot crowned with a fried egg, rollmops and pickles, an acquired, beloved taste.",
+    "places": [
+      {
+        "name": "Old Commercial Room",
+        "lat": 53.54818,
+        "lng": 9.97791,
+        "why": "Hamburg's labskaus benchmark opposite St. Michaelis church since 1795."
+      },
+      {
+        "name": "Oberhafenkantine",
+        "lat": 53.54463,
+        "lng": 10.0069,
+        "why": "The famously crooked 1925 dockworkers' canteen by the Oberhafen."
+      },
+      {
+        "name": "Brodersen",
+        "lat": 53.56665,
+        "lng": 9.98919,
+        "why": "Rotherbaum institution serving labskaus to generations of students."
+      }
+    ]
+  },
+  {
+    "city": "Hamburg",
+    "country": "Germany",
+    "dish": "Franzbrötchen",
+    "blurb": "Hamburg's flat, buttery cinnamon-sugar pastry, the city's answer to the cinnamon roll, best still warm.",
+    "places": [
+      {
+        "name": "die kleine konditorei",
+        "lat": 53.58151,
+        "lng": 9.93715,
+        "why": "Eimsbüttel bakery whose franzbrötchen regularly win city-wide taste tests."
+      },
+      {
+        "name": "Konditorei Lindtner",
+        "lat": 53.59112,
+        "lng": 9.98819,
+        "why": "Wellingsbüttel family Konditorei baking franzbrötchen since 1936."
+      }
+    ]
+  },
+  {
+    "city": "Cologne",
+    "country": "Germany",
+    "dish": "Halver Hahn & Kölsch",
+    "blurb": "Not chicken at all: a rye roll with aged gouda, butter, mustard and gherkin, ordered by the name in Kölsch pubs.",
+    "places": [
+      {
+        "name": "Früh am Dom",
+        "lat": 50.93977,
+        "lng": 6.95696,
+        "why": "Cathedral-shadow brauhaus where halver hahn meets endless Kölsch trays."
+      },
+      {
+        "name": "Brauhaus Sion",
+        "lat": 50.93939,
+        "lng": 6.95927,
+        "why": "Old-town brauhaus pouring Sion Kölsch since 1318 (allegedly)."
+      },
+      {
+        "name": "Päffgen",
+        "lat": 50.94074,
+        "lng": 6.94179,
+        "why": "Friesenplatz institution, cask Kölsch and a textbook halver hahn."
+      },
+      {
+        "name": "Lommerzheim",
+        "lat": 50.93863,
+        "lng": 6.97364,
+        "why": "Deutz's beloved 'Lommi', famously unstuffy since 1959."
+      }
+    ]
+  },
+  {
+    "city": "Cologne",
+    "country": "Germany",
+    "dish": "Himmel un Ääd",
+    "blurb": "'Heaven and earth': black pudding and fried onions over mashed potato with apple sauce. Rhineland comfort on a plate.",
+    "places": [
+      {
+        "name": "Bei Oma Kleinmann",
+        "lat": 50.92957,
+        "lng": 6.93824,
+        "why": "Student-quarter legend serving himmel un ääd next to giant schnitzels."
+      },
+      {
+        "name": "Brauhaus Pütz",
+        "lat": 50.93511,
+        "lng": 6.93777,
+        "why": "Student-city brauhaus where the himmel un ääd comes on proper platters."
+      },
+      {
+        "name": "Gilden im Zims",
+        "lat": 50.93726,
+        "lng": 6.96003,
+        "why": "Rustic altstadt tavern near the Heinzelmännchen fountain."
+      }
+    ]
+  },
+  {
+    "city": "Frankfurt",
+    "country": "Germany",
+    "dish": "Grüne Soße",
+    "blurb": "Frankfurt's cold sauce of seven spring herbs with sour cream, served with boiled eggs and potatoes, schnitzel or beef.",
+    "places": [
+      {
+        "name": "Apfelwein Wagner",
+        "lat": 50.10061,
+        "lng": 8.68225,
+        "why": "Sachsenhausen's classic apfelwein tavern, grüne soße with eggs and potatoes."
+      },
+      {
+        "name": "Atschel",
+        "lat": 50.10484,
+        "lng": 8.68893,
+        "why": "Old Sachsenhausen cellar tavern where grüne soße is a matter of pride."
+      }
+    ]
+  },
+  {
+    "city": "Frankfurt",
+    "country": "Germany",
+    "dish": "Handkäs mit Musik & Apfelwein",
+    "blurb": "Sour-milk hand cheese marinated in oil, vinegar and onions ('the music'), washed down with sharp cider in Sachsenhausen.",
+    "places": [
+      {
+        "name": "Adolf Wagner",
+        "lat": 50.1005,
+        "lng": 8.68199,
+        "why": "1931 apfelwein house whose handkäs arrives properly 'with music'."
+      },
+      {
+        "name": "Fichtekränzi",
+        "lat": 50.10462,
+        "lng": 8.68905,
+        "why": "Wood-panelled 19th-century tavern, locals' pick for handkäs."
+      },
+      {
+        "name": "Dauth-Schneider",
+        "lat": 50.10487,
+        "lng": 8.69024,
+        "why": "Former apple-wine press house, family-run since 1849."
+      }
+    ]
+  },
+  {
+    "city": "Dresden",
+    "country": "Germany",
+    "dish": "Dresdner Stollen",
+    "blurb": "Protected-origin Christmas fruit bread, dense with butter, raisins and almonds, baked in Dresden since the 15th century.",
+    "places": [
+      {
+        "name": "Emil Reimann",
+        "lat": 51.06744,
+        "lng": 13.75833,
+        "why": "Dresden's flagship Stollen bakery, baking to the 1910 guild recipe."
+      },
+      {
+        "name": "Bäckerei Wippler",
+        "lat": 51.05394,
+        "lng": 13.81467,
+        "why": "Loschwitz family bakery with an award-winning hand-made stollen."
+      }
+    ]
+  },
+  {
+    "city": "Dresden",
+    "country": "Germany",
+    "dish": "Eierschecke",
+    "blurb": "Saxony's three-layer cake, base, quark custard and golden egg topping, Dresden's answer to cheesecake.",
+    "places": [
+      {
+        "name": "Coselpalais",
+        "lat": 51.05216,
+        "lng": 13.74259,
+        "why": "Grand-café version of the three-layer classic by the Frauenkirche."
+      },
+      {
+        "name": "Kuchen Atelier",
+        "lat": 51.04841,
+        "lng": 13.74188,
+        "why": "Neustadt cake atelier whose eierschecke sells out by mid-afternoon."
+      }
+    ]
+  },
+  {
+    "city": "Nuremberg",
+    "country": "Germany",
+    "dish": "Nürnberger Rostbratwürste",
+    "blurb": "Finger-sized marjoram sausages grilled over beechwood, served six-to-twelve on pewter with sauerkraut, 'Drei im Weckla' to go.",
+    "places": [
+      {
+        "name": "Bratwursthäusle",
+        "lat": 49.45501,
+        "lng": 11.07665,
+        "why": "Grilling original Nürnberger over beechwood beside the Sebalduskirche since 1462."
+      },
+      {
+        "name": "Zum Gulden Stern",
+        "lat": 49.4483,
+        "lng": 11.07088,
+        "why": "Nuremberg's oldest bratwurst kitchen (1419) in a timbered hall."
+      },
+      {
+        "name": "Bratwurst Röslein",
+        "lat": 49.45458,
+        "lng": 11.07786,
+        "why": "The world's largest sausage restaurant on the Rathausplatz."
+      }
+    ]
+  },
+  {
+    "city": "Nuremberg",
+    "country": "Germany",
+    "dish": "Nürnberger Lebkuchen",
+    "blurb": "Protected-origin gingerbread baked on wafer bases, the Elisen grade is almost entirely nuts, no flour.",
+    "places": [
+      {
+        "name": "Lebkuchen Schmidt",
+        "lat": 49.40076,
+        "lng": 11.11877,
+        "why": "Nuremberg's most famous lebkuchen house, at the Zollhaus since 1927."
+      },
+      {
+        "name": "Wicklein Lebkuchen",
+        "lat": 49.45366,
+        "lng": 11.07662,
+        "why": "Baking Elisenlebkuchen on the Hauptmarkt edge since 1615."
+      }
+    ]
+  },
+  {
+    "city": "Stuttgart",
+    "country": "Germany",
+    "dish": "Maultaschen",
+    "blurb": "Swabian ravioli stuffed with spinach, meat and breadcrumbs, 'in der Brühe', 'geschmälzt' or pan-fried with onions.",
+    "places": [
+      {
+        "name": "Weinstube Fröhlich",
+        "lat": 48.77218,
+        "lng": 9.17981,
+        "why": "Old-vaults weinstube serving maultaschen three classic ways."
+      },
+      {
+        "name": "Carls Brauhaus",
+        "lat": 48.77936,
+        "lng": 9.18021,
+        "why": "Schlossplatz-side brauhaus pairing maultaschen with house brews."
+      },
+      {
+        "name": "Weinstube Am Stadtgraben",
+        "lat": 48.80494,
+        "lng": 9.21618,
+        "why": "Cosy weinstube by the old moat with hand-made maultaschen."
+      }
+    ]
+  },
+  {
+    "city": "Stuttgart",
+    "country": "Germany",
+    "dish": "Käsespätzle",
+    "blurb": "Hand-scraped egg noodles layered with melted mountain cheese and crowned with crispy fried onions.",
+    "places": [
+      {
+        "name": "Weinstube Schellenturm",
+        "lat": 48.77313,
+        "lng": 9.1834,
+        "why": "Sixteenth-century tower tavern, käsespätzle from the copper pan."
+      },
+      {
+        "name": "Weinstube Kachelofen",
+        "lat": 48.77349,
+        "lng": 9.1775,
+        "why": "Old-town weinstube famous for bubbling käsespätzle pans by the tiled stove."
+      }
+    ]
+  },
+  {
+    "city": "Leipzig",
+    "country": "Germany",
+    "dish": "Leipziger Lerche",
+    "blurb": "Shortcrust tartlet of marzipan, almonds and cherry, once baked with real larks, today a sweet symbol of the city.",
+    "places": [
+      {
+        "name": "Café Kandler",
+        "lat": 51.34026,
+        "lng": 12.37765,
+        "why": "The Thomasgasse Konditorei that keeps the lerche tradition alive."
+      },
+      {
+        "name": "Kaffeehaus Riquet",
+        "lat": 51.34067,
+        "lng": 12.3769,
+        "why": "Lerche under the famous elephant gable, with house-roasted coffee."
+      }
+    ]
+  },
+  {
+    "city": "Leipzig",
+    "country": "Germany",
+    "dish": "Räbchen (Leipzig Crayfish)",
+    "blurb": "Butter-poached river crayfish from the Leipzig waterways, the historic delicacy Goethe's crowd ate at Auerbachs Keller.",
+    "places": [
+      {
+        "name": "Auerbachs Keller",
+        "lat": 51.33958,
+        "lng": 12.3755,
+        "why": "Goethe's Faust cellar in the Mädlerpassage, räbchen in season."
+      },
+      {
+        "name": "Zill's Tunnel",
+        "lat": 51.3408,
+        "lng": 12.37326,
+        "why": "Barfüßgäßchen tavern serving Leipzig classics since 1841."
+      },
+      {
+        "name": "Thüringer Hof",
+        "lat": 51.33814,
+        "lng": 12.37348,
+        "why": "Leipzig's oldest restaurant (1454), known for Leipziger Allerlei with crayfish."
+      }
+    ]
+  },
+  {
+    "city": "Heidelberg",
+    "country": "Germany",
+    "dish": "Studentenkuss",
+    "blurb": "Chocolate-covered nougat praline on a wafer, invented in 1863 as a discreet 'kiss' between students and chaperoned young ladies.",
+    "places": [
+      {
+        "name": "Café Knösel",
+        "lat": 49.41236,
+        "lng": 8.70903,
+        "why": "The Haspelgasse café where master confectioner Fridolin Knösel invented it."
+      }
+    ]
+  }
+]

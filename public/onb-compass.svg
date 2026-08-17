@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="320" height="240" fill="none" role="img" aria-label="Compass illustration">
+  <!-- surface-2 blob backdrop -->
+  <path d="M160 30 C216 30 268 66 272 116 C276 164 228 208 158 208 C92 208 46 170 48 114 C50 62 102 30 160 30 Z" fill="#8A8175" fill-opacity="0.08"/>
+  <g stroke="#8A8175" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <!-- orbiting dashed route -->
+    <ellipse cx="160" cy="120" rx="104" ry="44" transform="rotate(-16 160 120)" stroke-dasharray="1.5 8"/>
+    <!-- compass body -->
+    <circle cx="160" cy="120" r="56"/>
+    <circle cx="160" cy="120" r="46" stroke-opacity="0.45"/>
+    <!-- tick marks -->
+    <path d="M160 70 L160 78"/>
+    <path d="M160 162 L160 170"/>
+    <path d="M110 120 L118 120"/>
+    <path d="M202 120 L210 120"/>
+    <path d="M125 85 L130 90"/>
+    <path d="M190 150 L195 155"/>
+    <path d="M195 85 L190 90"/>
+    <path d="M130 150 L125 155"/>
+    <!-- 8-point star -->
+    <path d="M160 84 L166 114 L196 120 L166 126 L160 156 L154 126 L124 120 L154 114 Z"/>
+    <path d="M160 96 L181 109 M181 131 L160 144 M139 131 L139 109" stroke-opacity="0"/>
+  </g>
+  <!-- brand-colored needle (pointing NE) -->
+  <g stroke="#BC5934" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M160 120 L186 94 L168 124 Z" fill="#BC5934" fill-opacity="0.14"/>
+    <path d="M160 120 L134 146 L152 116 Z"/>
+    <circle cx="160" cy="120" r="4" fill="#BC5934" stroke="none"/>
+  </g>
+  <!-- orbit pins -->
+  <circle cx="66" cy="141" r="3" stroke="#8A8175" stroke-width="2"/>
+  <circle cx="252" cy="94" r="3" fill="#BC5934"/>
+</svg>

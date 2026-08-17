@@ -1,0 +1,362 @@
+[
+  {
+    "name": "Eiffel Tower",
+    "city": "Paris",
+    "country": "France",
+    "lat": 48.8584,
+    "lng": 2.2945,
+    "category": "activity",
+    "story": "Gustave Eiffel's iron tower rose in just over two years as the entrance arch of the 1889 Exposition Universelle, held on the centenary of the French Revolution. At 300 metres - 330 with its antennas - it was the tallest structure on earth for four decades, and Paris's artists hated it: they petitioned against the useless and monstrous skeleton blotting their skyline.\n\nThe tower was meant to stand twenty years; radio, and later television, saved it, its height proving invaluable for antennas. Now it is the most visited paid monument in the world. Take the stairs to the second floor if you can - the iron lacework close up is the real marvel - and be on the Champ de Mars at night, when twenty thousand bulbs sparkle for five minutes on the hour."
+  },
+  {
+    "name": "Louvre Museum",
+    "city": "Paris",
+    "country": "France",
+    "lat": 48.8606,
+    "lng": 2.3376,
+    "category": "activity",
+    "story": "The Louvre began around 1190 as a fortress of King Philip II guarding Paris's western flank - you can still see its medieval moat in the basement. Rebuilt as a royal palace over centuries, it opened as a public museum in 1793, in the fires of the Revolution, and grew into the largest art museum on earth.\n\nThree ladies draw the crowds: the Mona Lisa with her famous smile, the armless Venus de Milo, and the Winged Victory of Samothrace soaring at the head of a staircase. But the Louvre rewards the wanderer - Egyptian antiquities, the gilded Apollo Gallery, entire civilisations under one roof. Enter through I. M. Pei's glass pyramid of 1989, once reviled and now beloved, and accept that you will not see it all; nobody does."
+  },
+  {
+    "name": "Notre-Dame Cathedral",
+    "city": "Paris",
+    "country": "France",
+    "lat": 48.853,
+    "lng": 2.3499,
+    "category": "activity",
+    "story": "On the Ile de la Cite, where Paris was born, Bishop Maurice de Sully laid Notre-Dame's first stone in 1163; the cathedral rose over nearly two centuries into the great masterpiece of French Gothic. Its flying buttresses, rose windows and gallery of kings defined an era - and its bells have marked the city's sorrows and liberations ever since.\n\nDecayed by the early 1800s, the cathedral was saved in part by Victor Hugo's 1831 novel, which made the hunchback Quasimodo a hero and shamed France into a grand restoration under Viollet-le-Duc. In April 2019 fire took the spire and roof, and the world grieved live; after an extraordinary restoration, Notre-Dame reopened in December 2024, its cleaned stone luminous. Arrive early, and look up: eight centuries look back."
+  },
+  {
+    "name": "Mont-Saint-Michel",
+    "city": "Mont-Saint-Michel",
+    "country": "France",
+    "lat": 48.6361,
+    "lng": -1.5115,
+    "category": "activity",
+    "story": "According to tradition, in 708 the Archangel Michael appeared to Bishop Aubert of Avranches and told him to build a church on this tidal rock - he had to ask three times. The abbey that grew there became one of the great pilgrimages of medieval Europe, its Gothic upper levels stacked so audaciously they earned the name La Merveille, the Marvel.\n\nFortress, monastery and, after the Revolution, a prison, the Mont was restored in the 19th century and is now UNESCO-listed with its bay. The tides here are among Europe's most dramatic, racing in across the sands - never walk the bay without a guide. Climb the Grande Rue at dawn before the crowds, attend lauds with the small monastic community, and watch the island become an island again."
+  },
+  {
+    "name": "Palace of Versailles",
+    "city": "Versailles",
+    "country": "France",
+    "lat": 48.8049,
+    "lng": 2.1204,
+    "category": "activity",
+    "story": "Louis XIII's modest hunting lodge became, under his son Louis XIV, the most magnificent court in Europe and the machinery of absolute monarchy. From 1682 the Sun King ruled France from Versailles, its rituals - the lever, the grand couvert - turning nobles into courtiers. The Hall of Mirrors, 73 metres of glass and gold facing the gardens, was built to awe, and still does.\n\nHistory kept happening here: the women of Paris marched on Versailles in 1789 and marched the royal family back to Paris and the guillotine; and in 1919, in that same Hall of Mirrors, the treaty ending the First World War was signed. Allow a full day: Andre Le Notre's gardens stretch to the horizon, and the Trianon palaces offer relief from the crowds."
+  },
+  {
+    "name": "Colosseum",
+    "city": "Rome",
+    "country": "Italy",
+    "lat": 41.8902,
+    "lng": 12.4922,
+    "category": "activity",
+    "story": "The Flavian Amphitheatre - we call it the Colosseum, after a colossal statue of Nero that stood nearby - was begun by the emperor Vespasian around 70-72 CE and opened by his son Titus in 80 CE with a hundred days of games. Built partly with spoils from the sack of Jerusalem, it held fifty thousand or more Romans for gladiator combats, wild-beast hunts and, in its early years, mock sea battles.\n\nFor nearly four centuries it was the beating, bloody heart of Roman spectacle; afterwards it served as quarry, fortress and shrine, which is why half of it is missing and half still stands. Walk the arena level at opening time, look down into the hypogeum where animals and fighters waited in the dark, and let the scale sink in: two millennia later, it remains the largest ancient amphitheatre ever built."
+  },
+  {
+    "name": "St. Peter's Basilica",
+    "city": "Vatican City",
+    "country": "Vatican City",
+    "lat": 41.9022,
+    "lng": 12.4539,
+    "category": "activity",
+    "story": "St. Peter's stands over the tomb of the apostle Peter, crucified in Nero's circus on this spot. When the 1,200-year-old first basilica decayed beyond repair, Pope Julius II ordered a new one in 1506 - a project that consumed 120 years and the genius of Bramante, Raphael, Michelangelo, who designed the great dome, and Bernini, who wrapped the square in embracing colonnades.\n\nIt is less a church than a city of faith: Michelangelo's Pieta behind glass, Bernini's bronze baldacchino spiralling over the papal altar, and a nave so vast it swallows crowds. Climb the dome - the last stretch squeezes between its double shell - for the finest view in Rome. Remember the dress code, and pause at the bronze statue of Peter, its foot worn smooth by centuries of pilgrims' kisses."
+  },
+  {
+    "name": "Pompeii",
+    "city": "Pompei",
+    "country": "Italy",
+    "lat": 40.7497,
+    "lng": 14.4869,
+    "category": "activity",
+    "story": "On an August day in 79 CE, Vesuvius exploded and buried the prosperous Roman town of Pompeii under metres of ash and pumice, killing thousands in hours - and preserving a Roman city whole: streets, shops, brothels, bathhouses and election slogans on the walls. The young Pliny, watching from across the bay, left the account that still chills.\n\nRediscovered in the 18th century, Pompeii rewrote what we know of ordinary Roman life. In the 1860s excavators began pouring plaster into voids in the ash, resurrecting the victims themselves in their final moments. Walk the Via dell'Abbondanza from the forum to the amphitheatre, visit the House of the Faun and the Villa of the Mysteries' ravishing frescoes, and give it a full day - this is the closest you will ever come to time travel."
+  },
+  {
+    "name": "Leaning Tower of Pisa",
+    "city": "Pisa",
+    "country": "Italy",
+    "lat": 43.723,
+    "lng": 10.3966,
+    "category": "activity",
+    "story": "Pisa's campanile began to lean almost as soon as it was begun in 1173: the soft, sandy subsoil of the Piazza dei Miracoli could not hold it. Builders paused for a century, then compensated by curving the upper storeys, finishing in 1372 a bell tower that leans famously - about four degrees today, once a far more alarming five and a half.\n\nGalileo, a Pisan, is said to have dropped balls of different weights from its top to show they fall together; the tale may be legend, but it fits the tower's hold on imagination. In the 1990s engineers closed it and carefully extracted soil from beneath the high side, arresting the tilt for centuries to come. Book a timed climb - the spiral of 296 worn steps, lurching with the lean, is half the fun."
+  },
+  {
+    "name": "Brandenburg Gate",
+    "city": "Berlin",
+    "country": "Germany",
+    "lat": 52.5163,
+    "lng": 13.3777,
+    "category": "activity",
+    "story": "Berlin's neoclassical icon was raised in 1788-1791 for King Frederick William II, modelled on the gateway to the Athenian Acropolis and crowned by the Quadriga - Victory's chariot drawn by four horses. Napoleon liked it so much he took the Quadriga to Paris in 1806; Prussia brought it home in triumph in 1814.\n\nIn the 20th century the gate became the symbol of a divided city: it stood stranded in the death strip just behind the Berlin Wall, and when the Wall fell in November 1989, the world watched Berliners dance on both. Reagan's 1987 tear-down-this-wall speech was delivered beside it. Come at dusk when it is floodlit, walk through to the Pariser Platz, and feel how a monument of kings became a monument of reunion."
+  },
+  {
+    "name": "Neuschwanstein Castle",
+    "city": "Schwangau",
+    "country": "Germany",
+    "lat": 47.5576,
+    "lng": 10.7498,
+    "category": "activity",
+    "story": "High above the Bavarian village of Hohenschwangau, King Ludwig II built the castle of his dreams from 1869: not a fortress but a romantic vision of the Middle Ages, all towers, frescoes of Wagnerian legend and a throne room without a throne. Ludwig, the Fairy Tale King, lived here only 172 days before his mysterious death in 1886; weeks later the castle was opened to the public, and it has never been empty since.\n\nIronically this medieval fantasy was built with modern technology - steel frames, central heating, even telephones. Its silhouette so perfectly captures the idea of a storybook castle that it inspired Disney's. Book tickets well ahead, walk up to the Marienbrucke bridge for the postcard view across the gorge, and tour the apartments where opera became architecture."
+  },
+  {
+    "name": "Cologne Cathedral",
+    "city": "Cologne",
+    "country": "Germany",
+    "lat": 50.9413,
+    "lng": 6.9583,
+    "category": "activity",
+    "story": "Cologne Cathedral was begun in 1248 to house a prize that made the city a capital of pilgrimage: the relics of the Three Kings, brought from Milan. Then history stalled - work ceased in the 16th century, and for three hundred years a huge crane stood rusting on the unfinished tower, part of Cologne's skyline.\n\nPrussian romanticism finished the job: building resumed in 1842 to the surviving medieval plans, and in 1880 the cathedral was completed, briefly the world's tallest building, its twin spires rising 157 metres. Miraculously it survived fourteen wartime bomb hits while the city around it burned. Inside, seek the golden Shrine of the Three Kings behind the high altar, then climb the south tower's 533 steps - the view over the Rhine repays every one."
+  },
+  {
+    "name": "East Side Gallery",
+    "city": "Berlin",
+    "country": "Germany",
+    "lat": 52.505,
+    "lng": 13.4397,
+    "category": "activity",
+    "story": "For 28 years the Berlin Wall cut this city in two; at least 140 people died trying to cross it. When it fell in November 1989, artists from twenty-one countries rushed to a surviving 1.3-kilometre stretch along the Spree and covered its grey east face with murals of hope and freedom - the East Side Gallery, the longest open-air gallery in the world.\n\nTwo images became icons: Dmitri Vrubel's fraternal kiss between Brezhnev and Honecker, and Birgit Kinder's little Trabant car bursting through the concrete. Weather and vandalism forced restorations, but the wall still speaks. Walk its length slowly from Oberbaumbrucke, read the panels about the death strip that once ran behind you, and remember that this painted ruin was, within living memory, the edge of the world."
+  },
+  {
+    "name": "Acropolis of Athens",
+    "city": "Athens",
+    "country": "Greece",
+    "lat": 37.9715,
+    "lng": 23.7267,
+    "category": "activity",
+    "story": "On this flat-topped rock above Athens, the statesman Pericles raised the buildings that defined classical beauty: the Parthenon, temple of Athena Parthenos, built in 447-432 BCE to designs of Ictinus and Callicrates with sculpture overseen by Phidias. Its columns swell and lean invisibly to correct the eye - a temple engineered like an organism.\n\nThe Parthenon has been temple, church, mosque and powder magazine - the last catastrophically, when a Venetian shell blew it apart in 1687 - and the story of the Elgin marbles, split between Athens and London, remains one of the world's great cultural debates. Climb in the cool of early morning, walk the Propylaea as processions did at the Panathenaea, and visit the Acropolis Museum below, where the surviving frieze waits in glass and marble light."
+  },
+  {
+    "name": "Oia",
+    "city": "Santorini",
+    "country": "Greece",
+    "lat": 36.4618,
+    "lng": 25.3753,
+    "category": "activity",
+    "story": "Santorini is the rim of a catastrophe: around 1600 BCE one of the largest volcanic eruptions in human history blew out the island's heart, burying the Minoan town of Akrotiri in ash and leaving the sea-flooded caldera whose cliffs now hold Oia. Some link the disaster to the legend of Atlantis; it certainly shook the ancient world.\n\nOia's whitewashed cave houses, blue-domed churches and marble lanes are carved into the cliff face itself - the houses of sailors and captains who once ruled these waters. Everyone comes for the sunset over the caldera, and it is genuinely worth it, but arrive hours early for the castle viewpoint or see dawn instead, when the village belongs to cats and church bells. Take the steps down to Ammoudi bay for a swim beneath the red cliffs."
+  },
+  {
+    "name": "Sagrada Familia",
+    "city": "Barcelona",
+    "country": "Spain",
+    "lat": 41.4036,
+    "lng": 2.1744,
+    "category": "activity",
+    "story": "Barcelona's unfinished basilica began in 1882; a year later the young Antoni Gaudi took over and transformed it into the most extraordinary church on earth - a stone forest of branching columns, facades crawling with sculpted life, and spires like something grown rather than built. Gaudi devoted his last decades entirely to it, and when a tram killed him in 1926, barely a quarter was done.\n\nWork continues to this day, funded by visitors and devotion, guided by Gaudi's surviving models - many reconstructed after anarchists smashed the originals in the Civil War. The completion of the great central Tower of Jesus Christ is now in sight. Inside, light falls through stained glass in a slow sunrise of colour; reserve well ahead, and look up the whole time."
+  },
+  {
+    "name": "Alhambra",
+    "city": "Granada",
+    "country": "Spain",
+    "lat": 37.176,
+    "lng": -3.5881,
+    "category": "activity",
+    "story": "On a hill above Granada, the Nasrid sultans - the last Muslim rulers of Spain - built their palace-city from the 13th century: the Alhambra, the Red One, after its tawny walls. Within are the most refined interiors of Islamic art in Europe: the Court of the Myrtles' still pool, and the Court of the Lions, where twelve marble lions ring a fountain beneath filigree arcades of carved stucco and tile.\n\nIn 1492 Granada fell to Ferdinand and Isabella, ending eight centuries of Muslim al-Andalus; the Alhambra survived, gaining Charles V's Renaissance palace in its midst. Every wall here is calligraphy and geometry - read the Arabic: there is no victor but God, repeated ten thousand times. Tickets sell out weeks ahead, and the Generalife gardens, with their fountains and night-scented air, demand an unhurried hour of their own."
+  },
+  {
+    "name": "Big Ben and the Houses of Parliament",
+    "city": "London",
+    "country": "United Kingdom",
+    "lat": 51.5007,
+    "lng": -0.1246,
+    "category": "activity",
+    "story": "Strictly, Big Ben is not the tower but the thirteen-and-a-half-tonne Great Bell inside it; the tower itself was renamed the Elizabeth Tower for the Queen's Diamond Jubilee in 2012. It rose in 1859 as part of Charles Barry's new Palace of Westminster, built after fire destroyed the old parliament in 1834, with Augustus Pugin supplying the glorious Gothic detail.\n\nThe clock's accuracy was a Victorian marvel, and its bongs - broadcast by the BBC since 1923 - became the sound of Britain itself through war and peace. Parliament beside it has met on this spot for a thousand years, since Westminster Hall was raised in 1097. The best free view is from Westminster Bridge at dusk, when the tower is lit and the river turns to bronze; tours of Parliament run when it is not sitting."
+  },
+  {
+    "name": "Tower of London",
+    "city": "London",
+    "country": "United Kingdom",
+    "lat": 51.5081,
+    "lng": -0.0759,
+    "category": "activity",
+    "story": "William the Conqueror raised the White Tower around 1078 to overawe his new capital, and for nearly a thousand years the fortress that grew around it has been palace, armoury, mint, zoo - and the most infamous prison in England. Anne Boleyn, Catherine Howard and Lady Jane Grey all died on Tower Green; the two young Princes in the Tower vanished here in 1483, a mystery still argued over.\n\nToday the Crown Jewels blaze behind glass - including the great diamonds of empires - guarded by the Yeoman Warders, the Beefeaters, whose tours are the best show in London. Six ravens strut the lawns, kept by legend and decree: if they ever leave, the kingdom falls, they say, so their wings are gently clipped. Go at opening, see the jewels first, then walk the walls as the crowds build."
+  },
+  {
+    "name": "Stonehenge",
+    "city": "Amesbury",
+    "country": "United Kingdom",
+    "lat": 51.1789,
+    "lng": -1.8262,
+    "category": "activity",
+    "story": "Stonehenge was raised in stages over roughly fifteen centuries, beginning around 3000 BCE - before the pyramids. Its outer circle of sarsen stones, some weighing twenty-five tonnes, came from nearby hills; the inner bluestones were dragged an astonishing 200 kilometres from the Preseli Hills of Wales. No one knows exactly why.\n\nWhat is certain is the sky: the monument aligns with the midsummer sunrise and midwinter sunset, and burials in its surrounding barrows suggest a place of ancestors and ceremony on a vast ritual landscape. Modern Druidic and pagan gatherings still greet the solstices here. The stone circle itself is viewed from a path, so book ahead, walk the wider landscape to the burial mounds, and visit the excellent museum - then let the wind on Salisbury Plain do the rest."
+  },
+  {
+    "name": "Edinburgh Castle",
+    "city": "Edinburgh",
+    "country": "United Kingdom",
+    "lat": 55.9486,
+    "lng": -3.1999,
+    "category": "activity",
+    "story": "Edinburgh Castle crowns an extinct volcano whose rock has been fortified since the Iron Age - the most besieged place in Britain, it is said, stormed and retaken through the Wars of Independence and beyond. Within the walls stands tiny St Margaret's Chapel, built in the 12th century and the oldest surviving building in the city.\n\nHere Scotland keeps its treasures: the Honours of Scotland - crown, sceptre and sword, the oldest crown jewels in Britain - and the Stone of Destiny, on which Scottish kings were crowned for centuries before Edward I carried it to Westminster in 1296. The One O'Clock Gun still fires daily, as it has since 1861, to set the city's watches. Come in August and the esplanade becomes the stage of the Military Tattoo; come at dawn and the Old Town spreads below like a map."
+  },
+  {
+    "name": "Kinkaku-ji",
+    "city": "Kyoto",
+    "country": "Japan",
+    "lat": 35.0394,
+    "lng": 135.7292,
+    "category": "activity",
+    "story": "The Golden Pavilion was born as the retirement villa of the shogun Ashikaga Yoshimitsu, who covered its upper floors in gold leaf in the spirit of paradise; on his death in 1408, by his will, it became the Zen temple Kinkaku-ji. Each of its three storeys is built in a different style - palace, samurai house, Zen hall - and the whole is doubled in the still Mirror Pond before it.\n\nIn 1950 a young novice monk burned the pavilion to the ground, a catastrophe that inspired Yukio Mishima's great novel; the temple was rebuilt in 1955, gilded more richly than before. It is perhaps Japan's single most beautiful view in every season - snow on the gold roof, maples aflame, cherry blossom. Arrive at opening time; the path is one-way, the crowds are real, and the first sight of the floating gold is worth all of them."
+  },
+  {
+    "name": "Fushimi Inari Taisha",
+    "city": "Kyoto",
+    "country": "Japan",
+    "lat": 34.9671,
+    "lng": 135.7727,
+    "category": "activity",
+    "story": "Fushimi Inari is the head shrine of some thirty thousand shrines across Japan dedicated to Inari, the kami of rice, harvests and - in modern times - business prosperity. Founded in 711, it predates Kyoto itself. Its messengers are foxes, kitsune, whose statues stand guard everywhere, often holding a key to the rice granary in their mouths.\n\nWhat the world comes for are the torii: thousands upon thousands of vermilion gates, each donated by a business or family, their black-inscribed backs recording the giver's wish. They form glowing tunnels up the forested slopes of Mount Inari - a two-to-three-hour round hike past smaller shrines and tea houses. Go at dawn or dusk when the crowds thin and the light through the gates turns the mountain to fire; the climb is the prayer."
+  },
+  {
+    "name": "Senso-ji",
+    "city": "Tokyo",
+    "country": "Japan",
+    "lat": 35.7148,
+    "lng": 139.7967,
+    "category": "activity",
+    "story": "Senso-ji is Tokyo's oldest temple, and its founding is a fine story: in the year 628, two brothers fishing the Sumida river pulled up a tiny golden statue of Kannon, the bodhisattva of mercy. They threw it back; it returned to their nets. A temple rose on the spot, and the fishing village around it became Edo, and then Tokyo.\n\nDestroyed in the war and rebuilt, the temple still anchors the old downtown spirit of Asakusa. Enter under the enormous red lantern of the Kaminarimon, the Thunder Gate, then walk Nakamise-dori, a street of snack and souvenir stalls that has served pilgrims for centuries, to the great hall where incense smoke is wafted over the head for health. Come early in the morning, when the shops are shuttered and the pigeons have the temple to themselves."
+  },
+  {
+    "name": "Mount Fuji",
+    "city": "Fujinomiya",
+    "country": "Japan",
+    "lat": 35.3606,
+    "lng": 138.7274,
+    "category": "activity",
+    "story": "Fuji-san is Japan's highest peak at 3,776 metres and its holiest - a near-perfect volcanic cone that has been a sacred mountain for over a thousand years, climbed by pilgrims in white and painted by Hokusai in views that became world icons. Its last eruption, in 1707, dusted Edo with ash a hundred kilometres away.\n\nThe official climbing season runs only from early July to early September, when the mountain huts open; most climbers start at night from the fifth station to greet the sunrise, goraiko, from the summit crater. If you would rather admire than ascend, the classic views are from Lake Kawaguchi and the Chureito Pagoda at Fujiyoshida. However you meet it, remember the Japanese saying: a wise man climbs Fuji once; only a fool climbs it twice."
+  },
+  {
+    "name": "Great Wall of China - Mutianyu",
+    "city": "Beijing",
+    "country": "China",
+    "lat": 40.4319,
+    "lng": 116.5704,
+    "category": "activity",
+    "story": "China's Great Wall is not one wall but many, built across two thousand years: first raised by warring states, joined by the First Emperor Qin Shi Huang, and rebuilt in the majestic stone-and-brick form you see today by the Ming dynasty after 1368. All its branches together run over twenty-one thousand kilometres - the greatest construction project in human history.\n\nThe Mutianyu section, about seventy kilometres from Beijing, is among the best preserved and loveliest: a Ming wall of dense watchtowers winding over steep green ridges. A cable car lifts you to the ramparts; walk towards the unrestored sections for silence, and ride the toboggan back down for joy. Stand on a watchtower as the wall snakes away over ridge after ridge, and the old line makes sense - whoever built this meant it to be seen from heaven."
+  },
+  {
+    "name": "Forbidden City",
+    "city": "Beijing",
+    "country": "China",
+    "lat": 39.9169,
+    "lng": 116.3907,
+    "category": "activity",
+    "story": "For almost five hundred years, from 1420 to 1912, this was the centre of the Chinese world: the palace of twenty-four emperors of the Ming and Qing dynasties, built by the Yongle emperor when he moved the capital to Beijing. Ordinary people were forbidden to enter without permission - hence the name - and its nearly ten thousand rooms were a universe of throne halls, gardens, concubines and eunuchs behind a moat and ten-metre walls.\n\nThe last emperor, Puyi, left in 1924, and the palace became a museum holding over a million imperial treasures. Walk the central axis from the Meridian Gate through the Hall of Supreme Harmony to the Imperial Garden, then climb Jingshan hill opposite for the classic view over the golden roofs. It is vast - give it half a day and enter as early as the gates allow."
+  },
+  {
+    "name": "Angkor Wat",
+    "city": "Siem Reap",
+    "country": "Cambodia",
+    "lat": 13.4125,
+    "lng": 103.867,
+    "category": "activity",
+    "story": "Angkor Wat is the largest religious monument on earth, built in the early 12th century by King Suryavarman II as his temple and tomb, dedicated to Vishnu - a stone model of the universe, its five towers representing the peaks of Mount Meru ringed by a moat as the cosmic ocean. In later centuries it gently became a Buddhist shrine, and it remains the symbol of Cambodia, set at the centre of the national flag.\n\nNearly a kilometre of bas-reliefs wraps the outer gallery: heavens and hells, historical battles, and the glorious Churning of the Sea of Milk by gods and demons. Come for sunrise behind the lotus-bud towers, but stay past eight when the crowds flee to breakfast - the galleries empty and the apsara carvings smile just for you. It is the jewel of a far larger temple city; give Angkor three days if you can."
+  },
+  {
+    "name": "Petra",
+    "city": "Wadi Musa",
+    "country": "Jordan",
+    "lat": 30.3285,
+    "lng": 35.4444,
+    "category": "activity",
+    "story": "Petra was the capital of the Nabataeans, Arab traders who grew rich frankincense-and-spice rich around two thousand years ago and carved their city of tombs and temples directly into rose-red sandstone cliffs. After earthquakes and shifting trade routes it faded from the map, known only to local Bedouin until the Swiss explorer Johann Burckhardt, travelling in disguise, revealed it to the West in 1812.\n\nYou enter as the ancients did: through the Siq, a narrow canyon that winds for over a kilometre before splitting open on the Treasury, Al-Khazneh, its forty-metre facade glowing pink in the morning sun - one of travel's great reveals. But Petra is vast: hike on to the Street of Facades, the theatre, the royal tombs, and climb the eight hundred steps to the Monastery, Ad-Deir, which dwarfs even the Treasury. Give it two days."
+  },
+  {
+    "name": "Great Pyramid of Giza",
+    "city": "Giza",
+    "country": "Egypt",
+    "lat": 29.9792,
+    "lng": 31.1342,
+    "category": "activity",
+    "story": "The Great Pyramid is the oldest of the Seven Wonders of the Ancient World and the only one still standing: built around 2560 BCE for Pharaoh Khufu, it rose 146 metres - the tallest human structure for more than 3,800 years. Some 2.3 million blocks of stone, laid over roughly two decades, aligned to the cardinal points with an accuracy that still impresses surveyors.\n\nForget slaves: the builders were paid Egyptian labourers, housed and fed in a workers' town whose remains archaeologists have excavated. You can enter the pyramid itself, climbing the close, hot Grand Gallery to the bare granite King's Chamber - claustrophobic and unforgettable. See the pyramids first from the panorama point, with the Sphinx below and Cairo's sprawl at their back, and marvel that these stones were ancient when Cleopatra was born."
+  },
+  {
+    "name": "Great Sphinx of Giza",
+    "city": "Giza",
+    "country": "Egypt",
+    "lat": 29.9753,
+    "lng": 31.1376,
+    "category": "activity",
+    "story": "Crouched at the foot of the Giza plateau for four and a half thousand years, the Great Sphinx - lion's body, king's head - is the largest monolithic statue on earth, some 73 metres long, carved from a single outcrop of the plateau's bedrock. Most scholars credit it to Pharaoh Khafre, whose pyramid stands behind it, its face perhaps his own.\n\nThe Sphinx has been buried to its neck in sand for much of its life; a stele between its paws tells how the young prince Thutmose, napping in its shade around 1400 BCE, dreamed the statue promised him the throne if he cleared the sand away - which he did, becoming Thutmose IV. And no, Napoleon's troops did not shoot off the nose; drawings show it gone decades before he was born. See it in late light from the viewing platform, when the desert turns to gold."
+  },
+  {
+    "name": "Burj Khalifa",
+    "city": "Dubai",
+    "country": "United Arab Emirates",
+    "lat": 25.1972,
+    "lng": 55.2744,
+    "category": "activity",
+    "story": "At 828 metres, the Burj Khalifa is the tallest structure human beings have ever built - so tall that its elevators are destinations in themselves and its upper floors look down on clouds. Opened in 2010 after six years of construction, it was designed by Adrian Smith's team at Skidmore, Owings and Merrill, its Y-shaped triple-lobed plan inspired by a desert flower and Islamic geometry.\n\nIt rose from a fishing-and-pearling village's transformation into a global city within a single lifetime, which is perhaps its strangest fact. The observation decks - At the Top on the 124th floor and the 148th-floor lounge - sell out at sunset for good reason: the desert, the Gulf and the geometric city below are sublime. Time your descent for the fountain show on the lake at its feet, set to music every half hour after dusk."
+  },
+  {
+    "name": "Sheikh Zayed Grand Mosque",
+    "city": "Abu Dhabi",
+    "country": "United Arab Emirates",
+    "lat": 24.4128,
+    "lng": 54.4748,
+    "category": "activity",
+    "story": "One of the largest mosques in the world, the Sheikh Zayed Grand Mosque was the dream of the UAE's founding president, who rests in its courtyard; completed in 2007, it unites artisans and materials from across the earth - Macedonian marble, Indian carving, Turkish calligraphy, German chandeliers - into a single vision of white serenity.\n\nEighty-two domes and over a thousand columns rise around courtyards floored with inlaid marble flowers; the main prayer hall holds what is said to be the world's largest hand-knotted carpet, made by over a thousand weavers in Iran. The mosque welcomes non-Muslim visitors daily outside prayer times - dress modestly, with abayas available on site. Come near sunset, when the white domes catch the light and the call to prayer rolls across the water-lined arcades."
+  },
+  {
+    "name": "Statue of Liberty",
+    "city": "New York",
+    "country": "United States",
+    "lat": 40.6892,
+    "lng": -74.0445,
+    "category": "activity",
+    "story": "Liberty Enlightening the World was France's gift to the United States, dedicated in 1886: designed by the sculptor Frederic Auguste Bartholdi over an iron skeleton engineered by Gustave Eiffel, her copper skin - thinner than two coins stacked - has weathered from shiny brown to the green patina we know. Her tablet bears the date July 4, 1776; broken chains lie at her feet.\n\nFor the twelve million immigrants who passed through nearby Ellis Island, she was the first sight of America, and Emma Lazarus's sonnet - give me your tired, your poor - made her their mother of exiles. Take the early ferry from Battery Park; climb to the crown with a reserved ticket if you can, and look back at Manhattan as ten million arrivals once looked forward."
+  },
+  {
+    "name": "Grand Canyon",
+    "city": "Grand Canyon Village",
+    "country": "United States",
+    "lat": 36.0544,
+    "lng": -112.1401,
+    "category": "activity",
+    "story": "The Grand Canyon is geology laid bare: 446 kilometres long, up to 29 kilometres wide and more than 1.8 kilometres deep, cut by the Colorado River over roughly five to six million years. Its layered walls read like pages - the dark Vishnu schist at the river is nearly two billion years old, almost half the age of the earth itself.\n\nThis is also a homeland: the Havasupai, Hualapai, Hopi and other peoples have lived in and around the canyon for centuries, long before it became a national park in 1919. Most visitors see the South Rim; walk even a short way down the Bright Angel Trail and the canyon changes from a view to a world. Sunrise at Mather Point and sunset at Hopi Point are the classic hours - bring layers, water, and time to simply stare."
+  },
+  {
+    "name": "Machu Picchu",
+    "city": "Aguas Calientes",
+    "country": "Peru",
+    "lat": -13.1631,
+    "lng": -72.545,
+    "category": "activity",
+    "story": "High on a ridge at 2,430 metres, wrapped in cloud forest above the Urubamba river, Machu Picchu was built in the 15th century under the Inca emperor Pachacuti - probably a royal estate and sacred site - and abandoned around the time of the Spanish conquest, which it escaped entirely unnoticed. The world learned of it in 1911 through the American explorer Hiram Bingham, guided to the ruins by local farmers who had always known they were there.\n\nThe stonework is the marvel: granite blocks cut and fitted without mortar so precisely that centuries of earthquakes have failed to shake them. Walk to the Intihuatana, the hitching post of the sun, look down at the condors circling the void, and if you have the legs, climb Huayna Picchu for the postcard view. Entry is timed and limited - book weeks ahead, and take the early bus to beat the crowds to the mist."
+  },
+  {
+    "name": "Christ the Redeemer",
+    "city": "Rio de Janeiro",
+    "country": "Brazil",
+    "lat": -22.9519,
+    "lng": -43.2105,
+    "category": "activity",
+    "story": "With arms spread twenty-eight metres wide atop the 710-metre Corcovado, Christ the Redeemer has blessed Rio de Janeiro since 1931. The Art Deco colossus - thirty metres tall, of reinforced concrete sheathed in soapstone - was designed by the French sculptor Paul Landowski, built by the Brazilian engineer Heitor da Silva Costa, and given its serene face by the Romanian artist Gheorghe Leonida.\n\nThe cog railway up through the Tijuca forest, one of the largest urban forests on earth, is half the pleasure. At the summit the whole of Rio spreads below: Sugarloaf, Copacabana's curve, the lagoon, the favelas and the sea. Clouds can swallow the statue without warning, so check the weather and go on the first clear morning of your stay - when the mist parts and the city appears at his feet, you will understand the devotion."
+  },
+  {
+    "name": "Niagara Falls",
+    "city": "Niagara Falls",
+    "country": "Canada",
+    "lat": 43.0962,
+    "lng": -79.0377,
+    "category": "activity",
+    "story": "Niagara is three waterfalls in one: the American Falls and Bridal Veil on the US side, and the great Horseshoe Falls on the Canadian side, where the full might of the Niagara River drops about fifty metres. The falls were born only about twelve thousand years ago, when retreating glaciers at the end of the last ice age released the Great Lakes towards the sea - and they are still creeping slowly upstream as the river gnaws the rock.\n\nThe falls have drawn honeymooners, painters and daredevils - from Blondin crossing on a tightrope in 1859 to barrel-riders whose luck varied. By treaty the flow is shared with hydroelectric stations, and reduced at night to spare the rock. Take the boat into the Horseshoe's mist - the Maid of the Mist or Hornblower - where the roar erases thought, and return at night when the falls are lit in colour."
+  },
+  {
+    "name": "Sydney Opera House",
+    "city": "Sydney",
+    "country": "Australia",
+    "lat": -33.8568,
+    "lng": 151.2153,
+    "category": "activity",
+    "story": "In 1957 a young Danish architect, Jorn Utzon, won the competition to design an opera house for Bennelong Point with sketches so bold the engineers took years to solve them - the famous shells were finally derived from the geometry of a single sphere, like segments of an orange. Politics soured; Utzon resigned in 1966 and never returned to see his building finished. It opened in 1973 and was listed as a UNESCO World Heritage Site in his lifetime, in 2007.\n\nOver a million white and cream ceramic tiles skin the sails, self-washing in the rain. The building performs even when its stages are dark - take the harbour ferry past it at dusk, walk the broad forecourt steps where buskers play, and catch any show you can: the concert hall's acoustics finally match the promise of the sails."
+  },
+  {
+    "name": "Table Mountain",
+    "city": "Cape Town",
+    "country": "South Africa",
+    "lat": -33.9628,
+    "lng": 18.4098,
+    "category": "activity",
+    "story": "Table Mountain's flat summit, 1,085 metres above Cape Town, is sandstone laid down half a billion years ago and sculpted into Africa's most recognisable skyline. The Khoekhoe herders who first grazed these slopes called it Hoerikwaggo, the mountain in the sea. When the south-easter blows, cloud pours over the edge like a slow waterfall - the famous tablecloth.\n\nThe mountain holds a botanical kingdom of its own: the fynbos of the Cape Floral Region packs more plant species onto these slopes than entire countries possess. The revolving cable car, running since 1929, lifts you to the top in minutes; the fit can hike Platteklip Gorge in two hours. At the summit, watch the rock hyraxes - dassies - sunning themselves, and the city, stadium and two oceans arranged below like a map."
+  }
+]
