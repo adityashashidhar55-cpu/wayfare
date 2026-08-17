@@ -41,3 +41,8 @@ coverage/
 # Local scratch: the cloud bridge cannot delete files, so stale git lock
 # files get moved here instead of removed.
 _to_delete/
+
+# The lockfile from the Kimi export is corrupt: `npm ci` rejects it and
+# `npm install` crashes with "Exit handler never called". npm resolves fresh
+# from package.json instead. Regenerate locally with `npm install` if wanted.
+package-lock.json
