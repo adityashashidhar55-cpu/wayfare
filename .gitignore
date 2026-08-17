@@ -37,3 +37,7 @@ coverage/
 # Cloudflare
 .wrangler/
 .dev.vars
+
+# Local scratch: the cloud bridge cannot delete files, so stale git lock
+# files get moved here instead of removed.
+_to_delete/
