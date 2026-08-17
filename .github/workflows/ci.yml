@@ -33,8 +33,14 @@ jobs:
       # So: no `|| npm install` fallback that can mask a broken install, and
       # devDependencies are requested explicitly. If this step fails the job
       # stops, which is what we want — everything after it would be noise.
+      #
+      # Run #2 then failed AT this step: `npm ci` demands the lockfile match
+      # package.json exactly, and the lockfile shipped in the Kimi export does
+      # not. `npm install` reconciles the drift and still installs
+      # devDependencies. It is the honest choice here — the alternative is a
+      # lockfile regenerated blind by someone who cannot run npm.
       - name: Install dependencies
-        run: npm ci --include=dev --no-audit --no-fund
+        run: npm install --include=dev --no-audit --no-fund
 
       # Proves the local toolchain is actually on PATH before we blame the code.
       - name: Verify toolchain
