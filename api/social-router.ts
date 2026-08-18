@@ -21,6 +21,7 @@
  */
 import { and, eq, inArray, like, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
+import { parseCaptionStructure } from "@contracts/caption-structure";
 import { TRPCError } from "@trpc/server";
 import * as schema from "@db/schema";
 import { getDb } from "./queries/connection";
@@ -568,6 +569,32 @@ export function chunkIntoDays<T>(ordered: T[], perDay = STOPS_PER_DAY): T[][] {
   return days;
 }
 
+/**
+ * r29: split places across the number of days the CAPTION asked for.
+ *
+ * chunkIntoDays above groups by a fixed size, so an eleven-place caption that
+ * plainly said "3 days in Kyoto" became a two-day trip (ceil(11/8)) and a
+ * caption that laid out four days became one. The creator's own structure was
+ * the most reliable signal in the whole import and it was discarded.
+ *
+ * Spreads as evenly as possible with the remainder on the earlier days, which
+ * is how people actually front-load a trip.
+ */
+export function spreadAcrossDays<T>(ordered: T[], dayCount: number): T[][] {
+  const n = Math.max(1, Math.min(dayCount, ordered.length || 1));
+  const out: T[][] = Array.from({ length: n }, () => []);
+  const base = Math.floor(ordered.length / n);
+  let extra = ordered.length % n;
+  let i = 0;
+  for (let d = 0; d < n; d++) {
+    const take = base + (extra > 0 ? 1 : 0);
+    if (extra > 0) extra--;
+    out[d] = ordered.slice(i, i + take);
+    i += take;
+  }
+  return out.filter((d) => d.length > 0);
+}
+
 // ─── Router ─────────────────────────────────────────────────────────────────
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -891,6 +918,15 @@ export const socialRouter = createRouter({
           .default([]),
         startDate: z.string().regex(DATE_RE).optional(),
         endDate: z.string().regex(DATE_RE).optional(),
+        /**
+         * r29: the original caption. When it laid out days ("Day 1: ... Day
+         * 2: ...") or stated a length ("3 days in Kyoto"), that is the
+         * creator's own itinerary and the most reliable signal in the whole
+         * import. It used to be dropped: places were chunked eight-per-day
+         * geographically, so an eleven-place three-day caption became a
+         * two-day trip with the days reshuffled.
+         */
+        caption: z.string().max(8000).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -965,7 +1001,14 @@ export const socialRouter = createRouter({
       }
 
       const ordered = orderPlacesByRoute(unique);
-      const dayChunks = chunkIntoDays(ordered, STOPS_PER_DAY);
+      // r29: honour the caption's own day structure when it has one.
+      const structure = input.caption ? parseCaptionStructure(input.caption) : null;
+      const captionDays = structure?.hasDayStructure
+        ? structure.days.length
+        : (structure?.durationDays ?? null);
+      const dayChunks = captionDays && captionDays > 0
+        ? spreadAcrossDays(ordered, captionDays)
+        : chunkIntoDays(ordered, STOPS_PER_DAY);
 
       // Destination: the city most places sit in (else first place's).
       const cityVotes = new Map<string, { city: string; country: string; n: number }>();

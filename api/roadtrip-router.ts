@@ -38,7 +38,7 @@ import { authedQuery, createRouter } from "./middleware";
 import { geocodeCity, geocodeCityInCountry, importCityPlaces, titleCase } from "./queries/overpass";
 import { legFollowsRoute, matchPopularRoute } from "./lib/popular-routes";
 import { fetchJson } from "./lib/http";
-import { isStatueLike, styleMatchScore, STATUE_PENALTY } from "./lib/style-map";
+import { isStatueLike, profileStyles, styleMatchScore, STATUE_PENALTY } from "./lib/style-map";
 import { isParkingLikeName } from "./lib/place-quality"; // r15-places
 
 // ── Shared types ─────────────────────────────────────────────────────────────
@@ -202,6 +202,52 @@ interface OsrmRoute {
   durationMin: number;
   /** [lng, lat] pairs when overview=full was requested. */
   geometry: [number, number][];
+}
+
+/**
+ * Drive a route through an ordered list of points.
+ *
+ * r29: `via` waypoints used to be ignored entirely. This function took only
+ * from/to and was called with just the two anchors, so a trip explicitly
+ * routed "Bengaluru -> Hampi -> Goa" was planned along the Bengaluru->Goa
+ * geometry and Hampi was merely PROJECTED onto that line - accepted even when
+ * it sat up to 500km off it. The corridor was therefore the wrong corridor,
+ * and every leg distance and drive time derived from it was wrong too.
+ *
+ * OSRM takes an arbitrary number of ;-separated coordinates, so honouring the
+ * waypoints is just passing them through. Capped at 8 points (origin + 6 vias
+ * + destination) to stay inside the public demo server's URL and CPU limits.
+ */
+async function osrmRouteVia(
+  points: LatLng[],
+  overview: "false" | "full" = "false",
+): Promise<OsrmRoute | null> {
+  const pts = points.filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)).slice(0, 8);
+  if (pts.length < 2) return null;
+  try {
+    const coords = pts.map((p) => `${p.lng},${p.lat}`).join(";");
+    const url =
+      `https://router.project-osrm.org/route/v1/driving/` +
+      `${coords}?overview=${overview}&geometries=geojson`;
+    const data = await fetchJson<{
+      code?: string;
+      routes?: {
+        duration?: number;
+        distance?: number;
+        geometry?: { coordinates?: [number, number][] };
+      }[];
+    }>(url, { userAgent: UA_STRING, timeoutMs: 15000, service: "osrm" });
+    if (data.code !== "Ok" || !data.routes?.[0]) return null;
+    const r = data.routes[0];
+    if (typeof r.distance !== "number" || typeof r.duration !== "number") return null;
+    return {
+      km: r.distance / 1000,
+      durationMin: r.duration / 60,
+      geometry: overview === "full" ? (r.geometry?.coordinates ?? []) : [],
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function osrmRoute(
@@ -1155,6 +1201,118 @@ export const roadtripRouter = createRouter({
    * discover in-between cities, allocate days by sights weight, draft stops
    * per city, and record one transport stop per intercity transfer.
    */
+  /**
+   * r29: SEE THE ROUTE BEFORE COMMITTING TO IT.
+   *
+   * `planRoadtrip` below is a mutation that geocodes, routes, picks cities,
+   * allocates days, creates the trip, its days, its stops and a member row,
+   * then navigates you into it. There was no way to ask "what would you plan
+   * for me?" - the only way to find out was to have it built, look at it, and
+   * delete the trip if it was wrong. For a feature whose whole job is
+   * answering "what is worth stopping for between A and B", that is the wrong
+   * order of operations.
+   *
+   * This does the discovery half and returns it. Nothing is written.
+   *
+   * Preferences are read from the saved taste profile when the caller does
+   * not override them, which the builder UI never did - it initialised styles
+   * to [] and made the user re-pick them in a collapsed "optional" section.
+   */
+  previewRoute: authedQuery
+    .input(
+      z.object({
+        originText: z.string().min(1).max(255),
+        destText: z.string().min(1).max(255),
+        via: z.array(z.string().min(1).max(255)).max(5).optional(),
+        styles: z.array(z.string()).optional(),
+        /** Places per corridor city in the preview. */
+        perCity: z.number().int().min(1).max(12).default(5),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const warnings: string[] = [];
+
+      let [originGeo, destGeo] = await Promise.all([
+        geocodeRobust(input.originText),
+        geocodeRobust(input.destText),
+      ]);
+      if (!originGeo && destGeo?.country) originGeo = await geocodeRobust(input.originText, destGeo.country);
+      if (!destGeo && originGeo?.country) destGeo = await geocodeRobust(input.destText, originGeo.country);
+      if (!originGeo || !destGeo) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Could not find ${!originGeo ? input.originText : input.destText}. Try adding the country.`,
+        });
+      }
+
+      const viaGeo: ViaPoint[] = [];
+      for (const raw of input.via ?? []) {
+        const g = await geocodeRobust(raw, originGeo.country ?? destGeo.country);
+        if (g) viaGeo.push({ name: titleCase(raw.split(",")[0]!.trim()), lat: g.lat, lng: g.lng, country: g.country ?? "" });
+        else warnings.push(`Could not place "${raw}" - skipped.`);
+      }
+
+      const airKm = haversineKm(originGeo.lat, originGeo.lng, destGeo.lat, destGeo.lng);
+      const route = await osrmRouteVia(
+        [
+          { lat: originGeo.lat, lng: originGeo.lng },
+          ...viaGeo.map((v) => ({ lat: v.lat, lng: v.lng })),
+          { lat: destGeo.lat, lng: destGeo.lng },
+        ],
+        "full",
+      );
+      const polyline: [number, number][] =
+        route?.geometry.length && route.geometry.length >= 2
+          ? route.geometry
+          : interpolate([originGeo.lng, originGeo.lat], [destGeo.lng, destGeo.lat],
+              Math.min(160, Math.max(32, Math.round(airKm / 25))));
+
+      const origin = { name: titleCase(input.originText.split(",")[0]!.trim()), lat: originGeo.lat, lng: originGeo.lng, country: originGeo.country ?? "" };
+      const dest = { name: titleCase(input.destText.split(",")[0]!.trim()), lat: destGeo.lat, lng: destGeo.lng, country: destGeo.country ?? "" };
+
+      const corridor = await corridorCities(polyline, origin, dest, viaGeo);
+
+      // Styles: explicit input wins, else the saved profile. The builder never
+      // read the profile, so a user who told us they like food and history in
+      // onboarding got a route ranked as if they had said nothing.
+      let styles = new Set<string>(input.styles ?? []);
+      if (styles.size === 0) {
+        const [pref] = await getDb()
+          .select()
+          .from(schema.preferences)
+          .where(eq(schema.preferences.userId, ctx.user.id))
+          .limit(1);
+        styles = profileStyles(pref);
+      }
+
+      const cities = await Promise.all(
+        corridor.map(async (city) => ({
+          name: city.name,
+          country: city.country,
+          lat: city.lat,
+          lng: city.lng,
+          kmFromStart: Math.round(city.alongKm ?? 0),
+          places: (await cityPlaces(city, input.perCity, styles)).map((p) => ({
+            id: Number(p.id), name: p.name, category: p.category,
+            description: p.description, image: p.image,
+            qualityScore: (p as { qualityScore?: number }).qualityScore ?? 0,
+          })),
+        })),
+      );
+
+      return {
+        origin, dest,
+        via: viaGeo.map((v) => ({ name: v.name, lat: v.lat, lng: v.lng })),
+        totalKm: Math.round(route?.km ?? airKm),
+        driveHours: route ? Math.round((route.durationMin / 60) * 10) / 10 : null,
+        routeEstimated: !route,
+        polyline,
+        cities: cities.filter((c) => c.places.length > 0),
+        stylesUsed: [...styles],
+        warnings,
+      };
+    }),
+
   planRoadtrip: authedQuery
     .input(
       z.object({
@@ -1287,13 +1445,18 @@ export const roadtripRouter = createRouter({
       // corridor discovery and day allocation work the same either way.
       const airKm = haversineKm(anchorA.lat, anchorA.lng, anchorB.lat, anchorB.lng);
       const singleCity = airKm < 80 && viaGeo.length === 0;
-      const route = singleCity
-        ? null
-        : await osrmRoute(
-            { lat: anchorA.lat, lng: anchorA.lng },
-            { lat: anchorB.lat, lng: anchorB.lng },
-            "full",
-          );
+      // r29: route THROUGH the vias. Previously this called osrmRoute with
+      // only the two anchors, so "Bengaluru -> Hampi -> Goa" was planned along
+      // the direct Bengaluru->Goa line and Hampi was merely projected onto it
+      // (accepted up to 500km off-corridor). The corridor, the leg distances
+      // and every drive time derived from them were all for a route the user
+      // had not asked for.
+      const routePoints: LatLng[] = [
+        { lat: anchorA.lat, lng: anchorA.lng },
+        ...viaGeo.map((v) => ({ lat: v.lat, lng: v.lng })),
+        { lat: anchorB.lat, lng: anchorB.lng },
+      ];
+      const route = singleCity ? null : await osrmRouteVia(routePoints, "full");
       const routeGeometry =
         route?.geometry.length && route.geometry.length >= 2 ? route.geometry : null;
       const routeEstimated = !singleCity && !routeGeometry;
@@ -1422,7 +1585,20 @@ export const roadtripRouter = createRouter({
       const dayAlloc = allocateDays(cities, input.days);
 
       // (e) Pick top places per city (3–4 per day, style-aware, budget-neutral).
-      const styles = new Set(input.styles ?? []);
+      // r29: fall back to the saved taste profile. RoadtripBuilder initialises
+      // styles to [] and hides the picker in a collapsed "optional" section,
+      // so in practice this arrived empty and the route was ranked as if the
+      // user had told us nothing about themselves - despite onboarding having
+      // asked.
+      let styles = new Set<string>(input.styles ?? []);
+      if (styles.size === 0) {
+        const [pref] = await db
+          .select()
+          .from(schema.preferences)
+          .where(eq(schema.preferences.userId, ctx.user.id))
+          .limit(1);
+        styles = profileStyles(pref);
+      }
       const cityPlacePools = await Promise.all(
         cities.map((c, i) => cityPlaces(c, dayAlloc[i]! * 4 + 2, styles)),
       );
