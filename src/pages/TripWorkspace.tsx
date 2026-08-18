@@ -9,12 +9,14 @@ import { ToastProvider } from "@/components/workspace/Toasts";
 import { WorkspaceHeader } from "@/components/workspace/WorkspaceHeader";
 import type { WorkspaceTab } from "@/components/workspace/WorkspaceHeader";
 import ItineraryTab from "@/components/workspace/ItineraryTab";
+import CrewTab from "@/components/workspace/CrewTab";
 import ReservationsTab from "@/components/workspace/ReservationsTab";
 import ChecklistsTab from "@/components/workspace/ChecklistsTab";
 import NotesTab from "@/components/workspace/NotesTab";
 
 const TABS: WorkspaceTab[] = [
   "itinerary",
+  "crew",
   "reservations",
   "checklists",
   "notes",
@@ -141,6 +143,7 @@ function TabContent({
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
           >
+            {tab === "crew" ? <CrewTab {...props} /> : null}
             {tab === "reservations" ? <ReservationsTab {...props} /> : null}
             {tab === "checklists" ? <ChecklistsTab {...props} /> : null}
             {tab === "notes" ? <NotesTab {...props} /> : null}

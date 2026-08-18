@@ -36,7 +36,7 @@ import FinalizePanel from "./FinalizePanel";
 import TravelModeToggle from "./TravelMode"; // r24-smart N
 
 export type WorkspaceTab =
-  "itinerary" | "reservations" | "checklists" | "notes";
+  "itinerary" | "crew" | "reservations" | "checklists" | "notes";
 
 export const WORKSPACE_TABS: {
   key: WorkspaceTab;
@@ -44,6 +44,9 @@ export const WORKSPACE_TABS: {
   icon: typeof Map;
 }[] = [
   { key: "itinerary", label: "Itinerary", icon: Map },
+  // r32: chat + voting. Sits second because deciding WHERE to go is the
+  // argument that happens before anything else on this list matters.
+  { key: "crew", label: "Crew", icon: Users },
   { key: "reservations", label: "Reservations", icon: BookMarked },
   { key: "checklists", label: "Checklists", icon: CheckSquare },
   { key: "notes", label: "Notes", icon: NotebookPen },
