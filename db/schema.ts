@@ -253,14 +253,42 @@ export const reservations = mysqlTable("reservations", {
 });
 export type Reservation = typeof reservations.$inferSelect;
 
-export const checklistItems = mysqlTable("checklist_items", {
-  id: serial("id").primaryKey(),
-  tripId: bigint("tripId", { mode: "number", unsigned: true }).notNull(),
-  list: varchar("list", { length: 24 }).notNull(), // packing | todo | shopping
-  label: varchar("label", { length: 255 }).notNull(),
-  done: boolean("done").default(false).notNull(),
-  position: int("position").notNull().default(0),
-});
+export const checklistItems = mysqlTable(
+  "checklist_items",
+  {
+    id: serial("id").primaryKey(),
+    tripId: bigint("tripId", { mode: "number", unsigned: true }).notNull(),
+    list: varchar("list", { length: 24 }).notNull(), // packing | todo | shopping
+    label: varchar("label", { length: 255 }).notNull(),
+    done: boolean("done").default(false).notNull(),
+    position: int("position").default(0).notNull(),
+    /**
+     * r29: WHOSE item is this.
+     *
+     * Until now every checklist row was trip-wide: one shared packing list
+     * that everybody could see and tick. That is right for "book the cab" and
+     * badly wrong for "pack my inhaler" - there was no way to keep a personal
+     * item personal, so people either did not use it or over-shared.
+     *
+     * NULL ownerId = a shared, trip-wide item (the old behaviour, preserved
+     * for every existing row).
+     */
+    ownerId: bigint("ownerId", { mode: "number", unsigned: true }),
+    /**
+     * private = only the owner sees it. shared = everyone on the trip does.
+     * Only meaningful when ownerId is set; a NULL-owner row is shared by
+     * definition.
+     */
+    visibility: mysqlEnum("visibility", ["shared", "private"]).default("shared").notNull(),
+    /** Optional: a member this item is assigned to ("Ravi brings the tent"). */
+    assignedMemberId: bigint("assignedMemberId", { mode: "number", unsigned: true }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  (t) => [
+    index("idx_checklist_trip").on(t.tripId, t.list),
+    index("idx_checklist_owner").on(t.tripId, t.ownerId),
+  ],
+);
 export type ChecklistItem = typeof checklistItems.$inferSelect;
 
 export const tripNotes = mysqlTable("trip_notes", {
@@ -698,6 +726,72 @@ export const tokenEvents = mysqlTable(
   ],
 );
 export type TokenEvent = typeof tokenEvents.$inferSelect;
+
+
+/**
+ * r29: IN-TRIP CHAT.
+ *
+ * Chat already existed but was bound to `friend_sessions` - the pre-trip
+ * "when are we all free" flow. Once a session converted to a real trip the
+ * conversation was left behind, and a trip created any other way (manually,
+ * from a prompt, from a road trip, from a social link, by accepting a join
+ * request) had no chat at all. Groups then moved the conversation to
+ * WhatsApp and stopped coming back.
+ *
+ * Scoped to ONE trip on purpose: a message here is about this trip, visible
+ * to exactly its members, and it dies with the trip.
+ */
+export const tripMessages = mysqlTable(
+  "trip_messages",
+  {
+    id: serial("id").primaryKey(),
+    tripId: bigint("tripId", { mode: "number", unsigned: true }).notNull(),
+    userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
+    /** Denormalised so a message keeps its author name if the user is removed. */
+    authorName: varchar("authorName", { length: 255 }).notNull(),
+    body: varchar("body", { length: 2000 }).notNull(),
+    /**
+     * Optional anchor: a message can be about a specific stop, which is how
+     * "should we swap this?" turns into a decision rather than scrollback.
+     */
+    stopId: bigint("stopId", { mode: "number", unsigned: true }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+  },
+  // The poll is always "everything after id N for this trip", so the index
+  // has to lead with tripId and end with id or every fetch is a filesort.
+  (t) => [index("idx_trip_messages").on(t.tripId, t.id)],
+);
+export type TripMessage = typeof tripMessages.$inferSelect;
+
+/**
+ * r29: VOTING ON STOPS.
+ *
+ * FeatureTour has marketed "Vote on stops together, decide in one place"
+ * since launch and no votes table existed. The only voting in the product was
+ * pre-trip date availability.
+ *
+ * One row per (stop, user) so a vote is idempotent and changeable - the
+ * unique index is what makes clicking twice a correction rather than a second
+ * vote.
+ */
+export const stopVotes = mysqlTable(
+  "stop_votes",
+  {
+    id: serial("id").primaryKey(),
+    tripId: bigint("tripId", { mode: "number", unsigned: true }).notNull(),
+    stopId: bigint("stopId", { mode: "number", unsigned: true }).notNull(),
+    userId: bigint("userId", { mode: "number", unsigned: true }).notNull(),
+    /** up = keep it, down = drop it. Deliberately not a 5-star scale. */
+    vote: mysqlEnum("vote", ["up", "down"]).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull().$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("uq_stop_vote").on(t.stopId, t.userId),
+    index("idx_stop_votes_trip").on(t.tripId, t.stopId),
+  ],
+);
+export type StopVote = typeof stopVotes.$inferSelect;
 
 /**
  * r27: one-time password reset tokens.

@@ -37,11 +37,31 @@ describe("profileStyles", () => {
     expect(profileStyles({ styles: null, interests: null, cuisines: null }).size).toBe(0);
   });
 
-  it("actually widens the tag set the ranker uses", () => {
+  it("widens the tag set when the interest brings genuinely new tags", () => {
+    // museums contributes museum/art/gallery/history, none of which food has.
     const coarse = tagsForStyles(profileStyles({ styles: ["food"] }));
-    const sharp = tagsForStyles(profileStyles({ styles: ["food"], interests: ["street-food"] }));
+    const sharp = tagsForStyles(profileStyles({ styles: ["food"], interests: ["museums"] }));
     expect(sharp.size).toBeGreaterThan(coarse.size);
-    expect(sharp.has("hawker")).toBe(true);
+    expect(sharp.has("gallery")).toBe(true);
+  });
+
+  it("helps via style OVERLAP even when the interest adds no new tags", () => {
+    // street-food's tags are a strict SUBSET of food's, so the tag set does
+    // not grow. The gain is in styleMatchScore, which counts how many of the
+    // user's styles a place matches: a place tagged street-food matches one
+    // style for a plain food lover and two for someone who named the
+    // interest, which is worth +10 in the ranker. Asserting tag-set growth
+    // here would be asserting the wrong mechanism - and did, until CI caught
+    // it.
+    const base = profileStyles({ styles: ["food"] });
+    const sharp = profileStyles({ styles: ["food"], interests: ["street-food"] });
+    expect(sharp.size).toBeGreaterThan(base.size);
+    expect(sharp.has("street-food")).toBe(true);
+
+    const placeStyles = ["street-food"];
+    const overlapBase = placeStyles.filter((s) => base.has(s)).length;
+    const overlapSharp = placeStyles.filter((s) => sharp.has(s)).length;
+    expect(overlapSharp).toBeGreaterThan(overlapBase);
   });
 
   it("every interest id in the quiz has a tag mapping", () => {

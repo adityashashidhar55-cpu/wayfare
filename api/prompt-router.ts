@@ -17,7 +17,7 @@
  * account.
  */
 import { z } from "zod";
-import { and, desc, eq, inArray, or, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, or, sql, type SQL } from "drizzle-orm";
 import * as schema from "@db/schema";
 import { parseTripPrompt, type TripIntent } from "@contracts/trip-prompt";
 import { getDb } from "./queries/connection";
