@@ -48,7 +48,7 @@ function dayKey(at: string | Date): string {
 /* ── chat ─────────────────────────────────────────────────────────────── */
 
 function TripChat({ tripId, meId }: { tripId: number; meId: number | null }) {
-  const toast = useToast();
+  const { push } = useToast();
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
   // Watermark, held in a ref so the poll interval never restarts when it
@@ -93,7 +93,7 @@ function TripChat({ tripId, meId }: { tripId: number; meId: number | null }) {
   }, [messages.length]);
 
   const send = trpc.collab.sendMessage.useMutation({
-    onError: (e) => toast(e.message || "Could not send that"),
+    onError: (e) => push({ title: e.message || "Could not send that", kind: "danger" }),
   });
 
   async function submit() {
@@ -229,7 +229,7 @@ function StopVotes({
   stops: WsStop[];
   canEdit: boolean;
 }) {
-  const toast = useToast();
+  const { push } = useToast();
   const utils = trpc.useUtils();
   const votesQ = trpc.collab.votes.useQuery({ tripId });
 
@@ -241,7 +241,7 @@ function StopVotes({
 
   const vote = trpc.collab.voteStop.useMutation({
     onSuccess: () => utils.collab.votes.invalidate({ tripId }),
-    onError: (e) => toast(e.message || "Could not record that vote"),
+    onError: (e) => push({ title: e.message || "Could not record that vote", kind: "danger" }),
   });
 
   const apply = trpc.collab.applyVotes.useMutation({
@@ -249,17 +249,21 @@ function StopVotes({
       // `removed` is a COUNT, not a list - the names come back separately so
       // the toast can say what actually left the plan instead of a bare number.
       const n = res.removed;
-      toast(
+      push(
         n
-          ? `Dropped ${res.names.slice(0, 3).join(", ")}${n > 3 ? ` and ${n - 3} more` : ""}`
-          : "Nothing was voted down",
+          ? {
+              title: `Dropped ${n} stop${n === 1 ? "" : "s"}`,
+              description: `${res.names.slice(0, 3).join(", ")}${n > 3 ? ` and ${n - 3} more` : ""}`,
+              kind: "success",
+            }
+          : { title: "Nothing was voted down", kind: "info" },
       );
       await Promise.all([
         utils.collab.votes.invalidate({ tripId }),
         utils.trips.get.invalidate({ id: tripId }),
       ]);
     },
-    onError: (e) => toast(e.message || "Could not apply the votes"),
+    onError: (e) => push({ title: e.message || "Could not apply the votes", kind: "danger" }),
   });
 
   // Contested stops first - a stop nobody has voted on is the least
