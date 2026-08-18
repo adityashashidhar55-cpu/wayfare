@@ -20,14 +20,13 @@
  * which lets a VIEWER edit the group list; that is fixed here for the
  * ownership-aware paths.
  */
-import { and, asc, desc, eq, gt, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, or, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as schema from "@db/schema";
 import { getDb } from "./queries/connection";
 import { authedQuery, createRouter } from "./middleware";
 import { requireEditor, requireMembership } from "./trip-router";
-import { notify } from "./lib/notify";
 
 /** Chat page size. The client polls for anything after a watermark id. */
 const MESSAGE_PAGE = 50;

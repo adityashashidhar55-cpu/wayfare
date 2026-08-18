@@ -277,6 +277,14 @@ function ListCard({
       label: labelText,
       done: false,
       position: items.length,
+      /* r29: checklist items gained ownership. This optimistic row is shown
+         before the server replies, so it has to look like what the server
+         will send back - a shared, unassigned item - or the list flickers
+         when the real row replaces it. */
+      ownerId: null,
+      visibility: 'shared',
+      assignedMemberId: null,
+      createdAt: new Date(),
     };
     patchCache(list => [...list, temp]);
     setDraft("");
