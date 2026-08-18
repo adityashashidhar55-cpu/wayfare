@@ -1,0 +1,48 @@
+# Wayfare - Render blueprint.
+#
+# ONE web service. There is no separate static site: this server renders the
+# per-trip Open Graph cards that make a shared itinerary preview correctly on
+# WhatsApp and Instagram, so the frontend cannot be split onto a static host.
+#
+# To use: Render dashboard -> New -> Blueprint -> pick this repo. Render reads
+# this file, creates the service, and asks for the four values marked
+# `sync: false`. Everything else is set here.
+services:
+  - type: web
+    name: wayfare
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    # Singapore is Render's closest region to India and to a TiDB Cloud
+    # ap-southeast cluster - keep the app and the database in the same region
+    # or every query pays a round trip across an ocean.
+    region: singapore
+    # `free` works, but a free instance sleeps after 15 minutes idle and takes
+    # ~50 seconds to wake. That is the wrong first impression for a demo, so
+    # this defaults to the always-on plan. Change it if you are just testing.
+    plan: starter
+    # /healthz answers immediately; the first-boot corpus load runs in the
+    # background AFTER the port is bound, so it never trips the health check.
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      # Set once, in the dashboard. See DEPLOY.md for ready-made values.
+      - key: APP_ID
+        sync: false
+      - key: APP_SECRET
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      # Public origin. Used for invite links, payment callbacks and the
+      # og:url on shared itineraries. Without it, links in emails point at
+      # localhost. Set it to your Render URL, then to your domain later.
+      - key: APP_URL
+        sync: false
+      # Render generates this one itself - it never needs to leave the
+      # dashboard. Signing sessions with a key that is NOT also an OAuth
+      # client_secret is the whole point.
+      - key: SESSION_SECRET
+        generateValue: true

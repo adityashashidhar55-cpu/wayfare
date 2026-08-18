@@ -15,6 +15,7 @@ import {
   mintUniqueReferralCode,
 } from "./lib/referral";
 import { claimPendingFriendParticipations, claimPendingTripInvites, findUserByEmail, findUserByUnionId, upsertUser } from "./queries/users";
+import { seedDemoData } from "./queries/demo";
 import { getDb } from "./queries/connection";
 import * as schema from "@db/schema";
 import { and, eq, isNull, ne } from "drizzle-orm";
@@ -163,6 +164,16 @@ export const authRouter = createRouter({
     const user = await findUserByUnionId(unionId);
     if (!user) {
       throw new Error("Failed to provision guest user");
+    }
+    // r31: give the guest something to look at. seedDemoData is idempotent
+    // (it returns early if the user already owns a trip) and a fresh guest
+    // owns none, so this always seeds exactly once per guest. It is
+    // deliberately fail-open: a seeding problem must never block sign-in,
+    // because an empty demo account is still a usable one.
+    try {
+      await seedDemoData(user.id);
+    } catch (err) {
+      console.error("[guestLogin] demo seed failed", err);
     }
     const token = await signSessionToken({
       unionId,

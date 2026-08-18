@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import * as schema from "@db/schema";
 import { getDb } from "./connection";
 import { convertCents } from "@contracts/fx";
@@ -30,7 +30,9 @@ export async function seedDemoData(userId: number) {
     styles: ["food", "historical", "relaxing"],
     budgetBand: "comfort",
     pace: "balanced",
-    interests: ["temples", "street food", "coffee", "photography"],
+    // These MUST be STYLE_TO_TAGS keys (hyphenated). "street food" with a
+    // space matches nothing and is silently discarded by profileStyles.
+    interests: ["temples", "street-food", "coffee", "photography"],
     cuisines: ["japanese", "italian"],
     companions: "friends",
     homeCurrency: "USD",
@@ -47,7 +49,34 @@ export async function seedDemoData(userId: number) {
   });
 
   // ── Hero trip: Japan in Bloom ────────────────────────────────────────────
-  const places = await db.select().from(schema.explorePlaces);
+  /**
+   * r31: fetch ONLY the places this demo references.
+   *
+   * This used to be `db.select().from(explorePlaces)` with no WHERE - it
+   * pulled all 526,142 rows over the wire and built a Map of every one, to
+   * look up seventeen names. On a real database that is hundreds of megabytes
+   * and several seconds on the first guest login of every cold start.
+   */
+  const KYOTO_PLACE_NAMES = [
+    "Fushimi Inari Shrine", "Ichiran Ramen", "Kyoto National Museum", "Gion Tanto",
+    "Arashiyama Bamboo Grove", "Kissa Master", "Camellia Tea Ceremony", "Bar K6",
+    "Nara Deer Park", "Dotonbori Street Food Crawl",
+  ];
+  const LISBON_PLACE_NAMES = ["Alfama Sunrise Walk", "Time Out Market"];
+  const BUCKET_PLACE_NAMES = [
+    "Path of the Gods", "Sky Lagoon", "Hierve el Agua",
+    "Da Adolfo Beach Shack", "Medina Spice Souk",
+  ];
+  // Every name the seed looks up, in one WHERE. If you add a P("...") call
+  // below, its name MUST appear in one of these three lists or the lookup
+  // silently returns undefined and the stop is skipped.
+  const DEMO_PLACE_NAMES = [
+    ...KYOTO_PLACE_NAMES, ...LISBON_PLACE_NAMES, ...BUCKET_PLACE_NAMES,
+  ];
+  const places = await db
+    .select()
+    .from(schema.explorePlaces)
+    .where(inArray(schema.explorePlaces.name, DEMO_PLACE_NAMES));
   const byName = new Map(places.map((p) => [p.name, p]));
   const P = (name: string) => byName.get(name);
 
@@ -65,14 +94,25 @@ export async function seedDemoData(userId: number) {
   });
   const tripId = Number(tripRes[0].insertId);
 
-  const memberRows = await db.insert(schema.tripMembers).values([
+  await db.insert(schema.tripMembers).values([
     { tripId, userId, name: "Alex Rivers", role: "owner", presenceColor: "#BC5934" },
     { tripId, userId: null, name: "Daniel Kim", role: "editor", presenceColor: "#44604F" },
     { tripId, userId: null, name: "Priya Shah", role: "editor", presenceColor: "#6E7FA3" },
   ]);
-  const ownerMemberId = Number(memberRows[0].insertId);
-  const danielId = ownerMemberId + 1;
-  const priyaId = ownerMemberId + 2;
+  /**
+   * Read the ids back instead of assuming insertId, insertId+1, insertId+2.
+   * That assumption holds on single-node InnoDB but NOT on TiDB, which hands
+   * out auto-increment ranges per node - the three rows can land far apart,
+   * and every expense split would then point at member ids that do not exist.
+   */
+  const members = await db
+    .select({ id: schema.tripMembers.id, name: schema.tripMembers.name })
+    .from(schema.tripMembers)
+    .where(eq(schema.tripMembers.tripId, tripId));
+  const memberIdByName = new Map(members.map((m) => [m.name, m.id]));
+  const ownerMemberId = memberIdByName.get("Alex Rivers")!;
+  const danielId = memberIdByName.get("Daniel Kim")!;
+  const priyaId = memberIdByName.get("Priya Shah")!;
 
   const dayCount = 6;
   const dayIds: number[] = [];
@@ -235,8 +275,7 @@ export async function seedDemoData(userId: number) {
   await db.insert(schema.tripMembers).values({ tripId: cphId, userId, name: "Alex Rivers", role: "owner", presenceColor: "#BC5934" });
 
   // ── Bucket list ──────────────────────────────────────────────────────────
-  const bucketNames = ["Path of the Gods", "Sky Lagoon", "Hierve el Agua", "Da Adolfo Beach Shack", "Medina Spice Souk"];
-  for (const n of bucketNames) {
+  for (const n of BUCKET_PLACE_NAMES) {
     const p = P(n);
     if (!p) continue;
     await db.insert(schema.bucketList).values({

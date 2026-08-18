@@ -389,12 +389,27 @@ if (env.isProduction) {
     console.error("[boot] unhandledRejection:", reason);
   });
 
-  // r22-speed: pre-warm the default explore feed (and keep active feeds
-  // warm) so users rarely hit a cold scored-feed fill. Non-blocking.
-  const { prewarmExploreFeeds } = await import("./lib/explore-feed");
-  prewarmExploreFeeds();
+  // r31: create the schema and load the place corpus if the database is
+  // empty. Started AFTER serve() so the port is already bound - a first-boot
+  // corpus load takes minutes, and a platform health check waiting on it
+  // would kill the container mid-load on every attempt, forever.
+  //
+  // Everything that reads explore_places is chained onto its completion:
+  // prewarming a feed against a table that does not exist yet just logs an
+  // error and leaves the cache cold.
+  const { bootstrapDatabase } = await import("@db/bootstrap");
+  void bootstrapDatabase()
+    .catch((err) => {
+      console.error("[boot] database bootstrap failed - serving anyway:", err);
+    })
+    .then(async () => {
+      // r22-speed: pre-warm the default explore feed (and keep active feeds
+      // warm) so users rarely hit a cold scored-feed fill. Non-blocking.
+      const { prewarmExploreFeeds } = await import("./lib/explore-feed");
+      prewarmExploreFeeds();
 
-  // r24-smart: 6h weather-threshold + wishlist-highlight checks (unref'd).
-  const { startSmartChecks } = await import("./lib/smart-cron");
-  startSmartChecks();
+      // r24-smart: 6h weather-threshold + wishlist-highlight checks (unref'd).
+      const { startSmartChecks } = await import("./lib/smart-cron");
+      startSmartChecks();
+    });
 }
