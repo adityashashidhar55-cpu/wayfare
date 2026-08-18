@@ -1270,7 +1270,9 @@ export const roadtripRouter = createRouter({
       const origin = { name: titleCase(input.originText.split(",")[0]!.trim()), lat: originGeo.lat, lng: originGeo.lng, country: originGeo.country ?? "" };
       const dest = { name: titleCase(input.destText.split(",")[0]!.trim()), lat: destGeo.lat, lng: destGeo.lng, country: destGeo.country ?? "" };
 
-      const corridor = await corridorCities(polyline, origin, dest, viaGeo);
+      // corridorCities returns { cities, viaSkipped } - not a bare array.
+      const { cities: corridor, viaSkipped } = await corridorCities(polyline, origin, dest, viaGeo);
+      for (const v of viaSkipped) warnings.push(`${v.name}: ${v.reason}`);
 
       // Styles: explicit input wins, else the saved profile. The builder never
       // read the profile, so a user who told us they like food and history in
@@ -1286,12 +1288,14 @@ export const roadtripRouter = createRouter({
       }
 
       const cities = await Promise.all(
-        corridor.map(async (city) => ({
+        corridor.map(async (city: CorridorCity) => ({
           name: city.name,
           country: city.country,
           lat: city.lat,
           lng: city.lng,
-          kmFromStart: Math.round(city.alongKm ?? 0),
+          // `progress` is the index of the nearest polyline sample, which is
+          // the only along-route metric CorridorCity carries.
+          routeProgress: city.progress,
           places: (await cityPlaces(city, input.perCity, styles)).map((p) => ({
             id: Number(p.id), name: p.name, category: p.category,
             description: p.description, image: p.image,
@@ -1307,7 +1311,7 @@ export const roadtripRouter = createRouter({
         driveHours: route ? Math.round((route.durationMin / 60) * 10) / 10 : null,
         routeEstimated: !route,
         polyline,
-        cities: cities.filter((c) => c.places.length > 0),
+        cities: cities.filter((c: { places: unknown[] }) => c.places.length > 0),
         stylesUsed: [...styles],
         warnings,
       };
