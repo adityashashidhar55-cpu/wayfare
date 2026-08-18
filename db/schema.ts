@@ -365,6 +365,24 @@ export const explorePlaces = mysqlTable(
   photoSource: varchar("photoSource", { length: 32 }), // osm | wikipedia | curated (NULL = pool fallback)
   photoAttribution: varchar("photoAttribution", { length: 255 }), // license/author credit for real photos
   famousEatery: boolean("famousEatery").default(false).notNull(), // "★ Famous pick" - famous eatery per (city,country)
+  /**
+   * r28: what this row can actually offer a traveller, 0-100.
+   *
+   * Measured, not guessed: description length and provenance, whether a photo
+   * exists, editorial verdict, famous-eatery flag, fee/meal data. Computed
+   * once at import by db/import-corpus.ts.
+   *
+   * This exists because the corpus is 526,142 rows of which only ~1,300 score
+   * 40 or above. Without a quality signal the feed treats a two-word OSM node
+   * with no photo exactly like a written-up landmark, which is precisely how
+   * the old fabricated "4.3 for everything" rating behaved. Ranking on this
+   * is what makes a thin corpus feel curated instead of empty.
+   */
+  qualityScore: int("qualityScore").default(0).notNull(),
+  /** Chain outlet (McDonald's, Lidl, TK Maxx). Real place, never a destination. */
+  isChain: boolean("isChain").default(false).notNull(),
+  /** Infrastructure, not a destination: parking, toilets, benches, ATMs. */
+  isJunk: boolean("isJunk").default(false).notNull(),
   },
   (t) => [
     index("idx_explore_city_famous").on(t.city, t.country, t.famousEatery),
@@ -376,6 +394,12 @@ export const explorePlaces = mysqlTable(
     // Apply to an existing DB with: npx tsx db/migrate-r25-honest-data.ts --apply
     index("idx_explore_latlng").on(t.lat, t.lng),
     index("idx_explore_cat_latlng").on(t.category, t.lat, t.lng),
+    // r28: city feeds rank by quality; without this every city page sorts
+    // 526k rows in a filesort.
+    index("idx_explore_city_quality").on(t.city, t.qualityScore),
+    // r28: the global "best places" feed sorts the whole corpus by quality.
+    // Measured at 79ms without this index on 526k rows, sub-millisecond with.
+    index("idx_explore_quality").on(t.qualityScore),
   ],
 );
 export type ExplorePlace = typeof explorePlaces.$inferSelect;

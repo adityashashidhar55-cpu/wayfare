@@ -100,6 +100,21 @@ export function feedScoreSql(userStyles: ReadonlySet<string>, inputStyle: string
     // a genuine rating now rank above unrated ones, which is the intent.
     // NOTE: must stay identical to the JS scorer below and in explore-router.
     sql`2 * COALESCE(${ep.rating}, 0)`,
+    // r28: THE quality term. With the fabricated 4.3 ratings nulled, the
+    // rating term above is 0 for 99.9% of the corpus, which left ranking to
+    // decide between half a million rows on style overlap alone - the same
+    // degenerate "sort by row id" the audit flagged.
+    //
+    // qualityScore (0-100, computed at import from description length and
+    // provenance, photo presence, verdict, fee data) at weight 0.25 gives a
+    // 0-25 band. That deliberately outweighs every other term, because a
+    // place with a photo and a real write-up IS the better result even when a
+    // bare OSM node matches one more style tag.
+    // NOTE: must stay identical to the JS scorer below.
+    sql`0.25 * COALESCE(${ep.qualityScore}, 0)`,
+    // Real places, never destinations. Not hidden, just sunk.
+    sql`-8 * ${ep.isChain}`,
+    sql`-50 * ${ep.isJunk}`,
     sql`1.5 * ${ep.hidden}`,
     sql`3 * (COALESCE(${ep.priceLevel}, 2) <= ${maxPrice})`,
   ];
@@ -121,6 +136,9 @@ type LightScoredRow = {
   hidden: number | boolean;
   priceLevel: number | null;
   feeCents: number | null;
+  qualityScore?: number | null;
+  isChain?: number | boolean | null;
+  isJunk?: number | boolean | null;
 };
 
 /**
@@ -160,6 +178,9 @@ export const FEED_COLUMNS = {
   approved: schema.explorePlaces.approved,
   photoSource: schema.explorePlaces.photoSource,
   photoAttribution: schema.explorePlaces.photoAttribution,
+  // r28: needed by the JS re-score, and the client dims low-quality cards.
+  qualityScore: schema.explorePlaces.qualityScore,
+  isChain: schema.explorePlaces.isChain,
 } as const;
 
 export type FeedRow = Pick<
@@ -180,6 +201,11 @@ function scoreLightRow(p: LightScoredRow, userStyles: ReadonlySet<string>, input
   // `?? 0` (not `?? 4`) - must match feedScoreSql's COALESCE above, or the
   // SQL buffer and the JS re-score disagree and the equivalence guard breaks.
   let score = styleMatchScore(p, userStyles) + (p.rating ?? 0) * 2 + (p.hidden ? 1.5 : 0);
+  // r28: mirrors feedScoreSql exactly. If you change one, change both - the
+  // SQL buffer and this re-score must agree or the equivalence guard breaks.
+  score += 0.25 * (p.qualityScore ?? 0);
+  if (p.isChain) score -= 8;
+  if (p.isJunk) score -= 50;
   if (isStatueLike(p)) score -= STATUE_PENALTY;
   const affordable = (p.priceLevel ?? 2) <= maxPrice;
   if (affordable) score += 3;

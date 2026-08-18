@@ -168,6 +168,9 @@ type LightPlace = {
   hidden: boolean;
   priceLevel: number | null;
   feeCents: number | null;
+  qualityScore?: number | null;
+  isChain?: boolean | null;
+  isJunk?: boolean | null;
 };
 
 const LIGHT_COLUMNS = {
@@ -180,6 +183,10 @@ const LIGHT_COLUMNS = {
   hidden: schema.explorePlaces.hidden,
   priceLevel: schema.explorePlaces.priceLevel,
   feeCents: schema.explorePlaces.feeCents,
+  // r28: quality signals - the city feed scores in JS and needs them too.
+  qualityScore: schema.explorePlaces.qualityScore,
+  isChain: schema.explorePlaces.isChain,
+  isJunk: schema.explorePlaces.isJunk,
 } as const;
 
 /**
@@ -279,6 +286,11 @@ export const exploreRouter = createRouter({
         // `?? 0` - keep in sync with api/lib/explore-feed.ts (both the SQL
         // COALESCE and the JS re-score).
         let score = styleMatchScore(p, userStyles) + (p.rating ?? 0) * 2 + (p.hidden ? 1.5 : 0);
+        // r28: same quality term as api/lib/explore-feed.ts. All THREE scorers
+        // (this one, the SQL in feedScoreSql, and the JS re-score) must agree.
+        score += 0.25 * (p.qualityScore ?? 0);
+        if (p.isChain) score -= 8;
+        if (p.isJunk) score -= 50;
         if (isStatueLike(p)) score -= STATUE_PENALTY; // statues below real attractions
         const affordable = (p.priceLevel ?? 2) <= maxPrice;
         if (affordable) score += 3;
