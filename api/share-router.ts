@@ -74,6 +74,15 @@ export const shareRouter = createRouter({
         .from(schema.trips)
         .where(eq(schema.trips.shareToken, input.token))
         .limit(1);
+      // Is this trip also published? That is the only route to membership,
+      // and the share page had no idea it existed.
+      const [pub] = trip
+        ? await db
+            .select({ slug: schema.publishedTrips.slug, isOpen: schema.publishedTrips.isOpen })
+            .from(schema.publishedTrips)
+            .where(eq(schema.publishedTrips.tripId, trip.id))
+            .limit(1)
+        : [];
       if (!trip) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -150,6 +159,21 @@ export const shareRouter = createRouter({
           })),
           members: memberRows,
         }),
+        /**
+         * r29: how a viewer can actually get INTO this trip.
+         *
+         * Sharing was a dead end: /shared/:token rendered a read-only page
+         * with no call to action at all, while the join flow lived on a
+         * separate /p/:slug published page the recipient had no link to. So
+         * "share your itinerary and get people to join you" stopped at
+         * "share your itinerary".
+         *
+         * Null when the owner has not published, in which case the UI asks
+         * them to rather than showing a button that cannot work.
+         */
+        join: pub
+          ? { slug: pub.slug, open: pub.isOpen, url: `/p/${pub.slug}` }
+          : null,
       };
     }),
 });

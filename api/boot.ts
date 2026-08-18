@@ -17,10 +17,11 @@ import {
 import { Paths } from "@contracts/constants";
 import { handleInboundEmail } from "./bookings-router";
 import { getPlaceNarration, NarrationError } from "./lib/narration";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import * as schema from "@db/schema";
 import { getDb } from "./queries/connection";
 import { verifyWebhookSignature } from "./lib/razorpay";
+import { injectOg, tripCard } from "./lib/og";
 import { activateVoyager, markPaymentFailed } from "./lib/entitlement";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
@@ -192,9 +193,170 @@ app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 export default app;
 
+
+
+/**
+ * r29: SERVER-RENDERED SOCIAL PREVIEW CARDS.
+ *
+ * Wayfare is a Vite SPA and social crawlers do not run JavaScript, so every
+ * shared itinerary previewed as the one static card in index.html: the brand
+ * banner, no trip name, no destination, no dates. Sharing a trip into a group
+ * chat looked like posting an ad for the app rather than inviting people to
+ * your trip, which quietly broke the whole share-to-join loop.
+ *
+ * These routes serve the SAME SPA shell with the <head> rewritten from real
+ * trip data. Humans get the identical app; crawlers get the truth. Not SSR -
+ * nothing else about the page is rendered here.
+ *
+ * PRODUCTION ONLY, and registered before serveStaticFiles so they win over the
+ * static/notFound handlers. In dev there is no dist/ to read, and returning a
+ * 404 here would break /shared/:token locally - Vite's own middleware serves
+ * index.html there and must be left alone.
+ *
+ * Every handler falls through to the plain shell on any error: a broken
+ * preview card must never take down the page itself.
+ */
+function registerSocialPreviewRoutes(): void {
+  async function readShell(): Promise<string | null> {
+    try {
+      const fs = await import("node:fs/promises");
+      const path = await import("node:path");
+      const p = path.resolve(import.meta.dirname, "../dist/public/index.html");
+      return await fs.readFile(p, "utf-8");
+    } catch {
+      return null;
+    }
+  }
+
+  app.get("/shared/:token", async (c) => {
+    const shell = await readShell();
+    if (!shell) return c.notFound();
+    const origin = new URL(c.req.url).origin;
+    try {
+      const token = c.req.param("token");
+      const db = getDb();
+      const [trip] = await db
+        .select({
+          title: schema.trips.title, destination: schema.trips.destination,
+          startDate: schema.trips.startDate, endDate: schema.trips.endDate,
+          coverImage: schema.trips.coverImage, id: schema.trips.id,
+        })
+        .from(schema.trips)
+        .where(eq(schema.trips.shareToken, token))
+        .limit(1);
+      if (!trip) return c.html(shell);
+
+      const [counts] = await db
+        .select({
+          stops: sql<number>`(SELECT COUNT(*) FROM stops WHERE stops.tripId = ${trip.id})`,
+          members: sql<number>`(SELECT COUNT(*) FROM trip_members WHERE trip_members.tripId = ${trip.id})`,
+          days: sql<number>`(SELECT COUNT(*) FROM trip_days WHERE trip_days.tripId = ${trip.id})`,
+        })
+        .from(schema.trips)
+        .where(eq(schema.trips.id, trip.id))
+        .limit(1);
+
+      const card = tripCard({
+        title: trip.title, destination: trip.destination,
+        startDate: trip.startDate, endDate: trip.endDate, coverImage: trip.coverImage,
+        stopCount: Number(counts?.stops ?? 0), memberCount: Number(counts?.members ?? 0),
+        dayCount: Number(counts?.days ?? 0),
+        url: `${origin}/shared/${token}`,
+      });
+      return c.html(injectOg(shell, card, origin));
+    } catch (e) {
+      console.warn("og /shared failed", e);
+      return c.html(shell);
+    }
+  });
+
+  app.get("/p/:slug", async (c) => {
+    const shell = await readShell();
+    if (!shell) return c.notFound();
+    const origin = new URL(c.req.url).origin;
+    try {
+      const slug = c.req.param("slug");
+      const db = getDb();
+      const [pub] = await db
+        .select({
+          title: schema.publishedTrips.title, summary: schema.publishedTrips.summary,
+          isOpen: schema.publishedTrips.isOpen, tripId: schema.publishedTrips.tripId,
+        })
+        .from(schema.publishedTrips)
+        .where(eq(schema.publishedTrips.slug, slug))
+        .limit(1);
+      if (!pub) return c.html(shell);
+
+      const [trip] = await db
+        .select({
+          destination: schema.trips.destination, startDate: schema.trips.startDate,
+          endDate: schema.trips.endDate, coverImage: schema.trips.coverImage,
+        })
+        .from(schema.trips)
+        .where(eq(schema.trips.id, pub.tripId))
+        .limit(1);
+
+      const [counts] = await db
+        .select({
+          stops: sql<number>`(SELECT COUNT(*) FROM stops WHERE stops.tripId = ${pub.tripId})`,
+          members: sql<number>`(SELECT COUNT(*) FROM trip_members WHERE trip_members.tripId = ${pub.tripId})`,
+          days: sql<number>`(SELECT COUNT(*) FROM trip_days WHERE trip_days.tripId = ${pub.tripId})`,
+        })
+        .from(schema.publishedTrips)
+        .where(eq(schema.publishedTrips.tripId, pub.tripId))
+        .limit(1);
+
+      const card = tripCard({
+        title: pub.title, destination: trip?.destination ?? null,
+        startDate: trip?.startDate ?? null, endDate: trip?.endDate ?? null,
+        coverImage: trip?.coverImage ?? null,
+        stopCount: Number(counts?.stops ?? 0), memberCount: Number(counts?.members ?? 0),
+        dayCount: Number(counts?.days ?? 0),
+        url: `${origin}/p/${slug}`, joinable: pub.isOpen,
+      });
+      // A published summary is the owner's own words - prefer it.
+      if (pub.summary) card.description = pub.summary.slice(0, 200);
+      return c.html(injectOg(shell, card, origin));
+    } catch (e) {
+      console.warn("og /p failed", e);
+      return c.html(shell);
+    }
+  });
+
+  /** Let crawlers in, and point them at the published trips that want traffic. */
+  app.get("/robots.txt", (c) =>
+    c.text(`User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /trips/\nSitemap: ${new URL(c.req.url).origin}/sitemap.xml\n`),
+  );
+
+  app.get("/sitemap.xml", async (c) => {
+    const origin = new URL(c.req.url).origin;
+    try {
+      const rows = await getDb()
+        .select({ slug: schema.publishedTrips.slug, at: schema.publishedTrips.createdAt })
+        .from(schema.publishedTrips)
+        .where(eq(schema.publishedTrips.isOpen, true))
+        .limit(5000);
+      const urls = [
+        `<url><loc>${origin}/</loc><priority>1.0</priority></url>`,
+        `<url><loc>${origin}/explore</loc><priority>0.8</priority></url>`,
+        `<url><loc>${origin}/pricing</loc><priority>0.5</priority></url>`,
+        ...rows.map((r) => `<url><loc>${origin}/p/${r.slug}</loc><lastmod>${r.at.toISOString().slice(0, 10)}</lastmod><priority>0.6</priority></url>`),
+      ];
+      return c.body(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join("")}</urlset>`,
+        200, { "content-type": "application/xml" });
+    } catch {
+      return c.body(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>${origin}/</loc></url></urlset>`,
+        200, { "content-type": "application/xml" });
+    }
+  });
+}
+
 if (env.isProduction) {
   const { serve } = await import("@hono/node-server");
   const { serveStaticFiles } = await import("./lib/vite");
+  // Order matters: our per-trip <head> rewrite must be registered before the
+  // catch-all static handler, or the generic shell wins.
+  registerSocialPreviewRoutes();
   serveStaticFiles(app);
 
   const port = parseInt(process.env.PORT || "3000");

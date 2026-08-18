@@ -290,7 +290,24 @@ export default function SharedTrip() {
     { enabled: Boolean(token), retry: false },
   );
 
-  const cta = (
+  /* r29: the whole point of sharing an itinerary is that someone can come
+     with you. This page used to offer exactly one action - "Make your own
+     trip" - which sends the person you invited AWAY to start a different
+     trip. Joining lived on a separate published page they had no link to.
+     When the trip is published we now lead with Join; otherwise we say
+     plainly that the organiser has not opened it, instead of showing a
+     button that cannot work. */
+  const joinInfo = query.data?.join ?? null;
+
+  const cta = joinInfo?.open ? (
+    <Link
+      to={joinInfo.url}
+      className="btn-sheen type-small inline-flex h-11 items-center justify-center gap-2 rounded-pill bg-brand px-6 font-semibold text-brand-ink shadow-sm transition-all duration-fast hover:-translate-y-px hover:bg-brand-strong hover:shadow-md active:scale-[0.98]"
+    >
+      Ask to join this trip
+      <ArrowRight className="h-4 w-4" strokeWidth={2} />
+    </Link>
+  ) : (
     <Link
       to="/login"
       className="btn-sheen type-small inline-flex h-11 items-center justify-center gap-2 rounded-pill bg-brand px-6 font-semibold text-brand-ink shadow-sm transition-all duration-fast hover:-translate-y-px hover:bg-brand-strong hover:shadow-md active:scale-[0.98]"
