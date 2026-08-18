@@ -170,3 +170,38 @@ export function isStatueLike(p: { name?: string | null; tags?: string[] | null }
 
 /** Ranking penalty for statue-like places (deprioritize, don't exclude). */
 export const STATUE_PENALTY = 3;
+
+/**
+ * r29: fold a saved taste profile into the style set the rankers consume.
+ *
+ * `preferences.interests` (onboarding Q4: street-food, museums, viewpoints,
+ * temples, hiking...) has been collected since the quiz shipped and read by
+ * NOTHING. STYLE_TO_TAGS above already carries an entry for every one of those
+ * interest ids, added with the comment "when they reach the API as styles" -
+ * they never did. So the most specific thing a user told us about themselves
+ * was the one thing ranking ignored.
+ *
+ * `cuisines` is folded in the same way: a stated cuisine implies the food
+ * style, which is weaker than the cuisine itself but strictly better than the
+ * current behaviour of discarding it.
+ *
+ * Interests are appended, not substituted: `styles` stays the coarse signal
+ * and interests sharpen it.
+ */
+export function profileStyles(pref: {
+  styles?: string[] | null;
+  interests?: string[] | null;
+  cuisines?: string[] | null;
+} | null | undefined): Set<string> {
+  const out = new Set<string>();
+  for (const s of pref?.styles ?? []) if (s) out.add(s);
+  for (const i of pref?.interests ?? []) {
+    if (!i) continue;
+    // Only ids we can actually express as corpus tags; an unknown interest
+    // would otherwise contribute a style that matches nothing and dilutes
+    // the overlap count.
+    if (i in STYLE_TO_TAGS) out.add(i);
+  }
+  if ((pref?.cuisines?.length ?? 0) > 0) out.add("food");
+  return out;
+}

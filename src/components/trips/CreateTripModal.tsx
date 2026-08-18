@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import type { TripIntent } from '@contracts/trip-prompt';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
@@ -193,8 +194,40 @@ type ModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   prefillDestination?: string;
+  /**
+   * r29: the full parsed landing-page sentence. Previously only the
+   * destination survived the trip from the hero textarea to here, so a user
+   * who wrote "7 days, kids, relaxed, no museums" had to re-enter all of it.
+   */
+  intent?: TripIntent | null;
   atLimit: boolean;
 };
+
+/**
+ * Map parsed styles onto the wizard's own intent chip vocabulary.
+ *
+ * The chips are a coarser set than the parser's styles, so several styles fold
+ * onto one chip. Anything with no chip is simply dropped - the style still
+ * reaches ranking through the trip's styles field, it just has no checkbox
+ * here to show.
+ */
+const STYLE_TO_CHIP: Record<string, string> = {
+  food: 'food', 'street-food': 'food', coffee: 'food', 'fine-dining': 'food',
+  adventure: 'adventure', hiking: 'adventure', nature: 'adventure', beaches: 'adventure',
+  historical: 'culture', culture: 'culture', museums: 'culture', temples: 'culture',
+  architecture: 'culture', nightlife: 'nightlife', music: 'nightlife', 'live-music': 'nightlife',
+  shopping: 'shopping', relaxing: 'relaxation', photography: 'culture', viewpoints: 'adventure',
+};
+
+function intentChipsFor(intent?: TripIntent | null): string[] {
+  if (!intent) return [];
+  const chips = new Set<string>();
+  for (const s of intent.styles) {
+    const chip = STYLE_TO_CHIP[s];
+    if (chip) chips.add(chip);
+  }
+  return [...chips];
+}
 
 /**
  * Shell - remounts the content component on every open (key change), so all
@@ -218,6 +251,7 @@ export function CreateTripModal(props: ModalProps) {
 function CreateTripModalContent({
   onOpenChange,
   prefillDestination,
+  intent: parsedIntent,
   atLimit,
 }: ModalProps) {
   const navigate = useNavigate();
@@ -247,16 +281,27 @@ function CreateTripModalContent({
 
   /* step 4: dates */
   const [range, setRange] = useState<DateRange | undefined>();
-  const [flexible, setFlexible] = useState(false);
-  const [flexMonth, setFlexMonth] = useState(() => toISODate(new Date()).slice(0, 7));
-  const [flexNights, setFlexNights] = useState(7);
+  const [flexible, setFlexible] = useState(() => parsedIntent?.month != null);
+  const [flexMonth, setFlexMonth] = useState(() => {
+    const m = parsedIntent?.month;
+    if (!m) return toISODate(new Date()).slice(0, 7);
+    // A named month means the NEXT occurrence of it, not one in the past.
+    const now = new Date();
+    const year = m - 1 < now.getMonth() ? now.getFullYear() + 1 : now.getFullYear();
+    return `${year}-${String(m).padStart(2, '0')}`;
+  });
+  const [flexNights, setFlexNights] = useState(() => parsedIntent?.durationDays ?? 7);
 
-  /* step 5: members */
-  const [adults, setAdults] = useState(2);
-  const [children, setChildren] = useState(0);
+  /* step 5: members - seeded from the sentence when it named a party */
+  const [adults, setAdults] = useState(() => {
+    const n = parsedIntent?.partySize;
+    if (n && n > 0) return parsedIntent?.withChildren ? Math.max(1, n - 1) : n;
+    return 2;
+  });
+  const [children, setChildren] = useState(() => (parsedIntent?.withChildren ? 1 : 0));
 
-  /* step 6: intent */
-  const [intent, setIntent] = useState<string[]>([]);
+  /* step 6: intent - seeded from the styles we parsed out of the sentence */
+  const [intent, setIntent] = useState<string[]>(() => intentChipsFor(parsedIntent));
 
   /* step 7: budget */
   const [currencyChoice, setCurrencyChoice] = useState<string | null>(null);

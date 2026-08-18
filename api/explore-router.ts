@@ -20,7 +20,7 @@ import {
 } from "./queries/overpass";
 import { authedQuery, createRouter, publicQuery } from "./middleware";
 import { normPlace } from "./queries/place-match";
-import { isStatueLike, styleMatchScore, STATUE_PENALTY } from "./lib/style-map";
+import { isStatueLike, profileStyles, styleMatchScore, STATUE_PENALTY } from "./lib/style-map";
 import { getGlobalFeed, FEED_COLUMNS, type FeedPlace } from "./lib/explore-feed";
 import { blurbFor, fameScoreFor, isGenericName, normalizeNameKey } from "./lib/place-quality";
 import { pickFamousEatsFallback } from "./lib/famous-eats";
@@ -272,7 +272,9 @@ export const exploreRouter = createRouter({
         : db.select().from(schema.explorePlaces).where(eq(schema.explorePlaces.addedById, ctx.user.id));
       const [prefRows, own] = await Promise.all([prefP, ownP]);
       const pref = prefRows[0];
-      const userStyles = new Set(pref?.styles ?? []);
+      // r29: interests and cuisines now count. They were collected by the
+      // onboarding quiz and read by nothing until this line.
+      const userStyles = profileStyles(pref);
       const budgetBand = pref?.budgetBand ?? "mid";
       let maxPrice = budgetBand === "shoestring" ? 1 : budgetBand === "mid" ? 2 : budgetBand === "comfort" ? 3 : 4;
       // "budget" as a chosen travel style is a hard signal too - cap at 2

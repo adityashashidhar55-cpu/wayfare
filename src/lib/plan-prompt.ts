@@ -52,17 +52,26 @@ export function consumeImportRequest(): boolean {
 }
 
 /**
- * Pull a short destination hint out of a free-text prompt for the
- * create-trip modal's destination prefill. Prefers "to <Place>", falls back
- * to "in <Place>"; only capitalized words are captured so months and common
- * nouns stay out. Returns undefined when nothing plausible is found.
+ * r29: destination extraction now lives in @contracts/trip-prompt, which
+ * parses the WHOLE sentence rather than just the place name.
+ *
+ * The old implementation here ran two regexes, returned the destination and
+ * discarded everything else - so "7-day trip to Japan, love food, avoid
+ * crowds" reached the planner as `dest=Japan`. Duration, interests and the
+ * negation were thrown away, which meant the headline feature of the landing
+ * page did nothing beyond prefilling one text box.
+ *
+ * Re-exported here so existing imports keep working.
  */
+export { extractDestination as extractDestinationHintRaw } from '@contracts/trip-prompt';
+import { parseTripPrompt, extractDestination } from '@contracts/trip-prompt';
+
+/** Back-compat shim: the old signature returned `undefined`, not `null`. */
 export function extractDestinationHint(prompt: string): string | undefined {
-  const word = "[A-Z][A-Za-z'\\-.]*";
-  const place = `(${word}(?:\\s+${word}){0,2})`;
-  const to = new RegExp(`\\bto\\s+${place}`).exec(prompt);
-  if (to?.[1]) return to[1];
-  const inMatch = new RegExp(`\\bin\\s+${place}`).exec(prompt);
-  if (inMatch?.[1]) return inMatch[1];
-  return undefined;
+  return extractDestination(prompt) ?? undefined;
+}
+
+/** The full parse. Prefer this - it is what makes the prompt actually count. */
+export function parsePrompt(prompt: string) {
+  return parseTripPrompt(prompt);
 }

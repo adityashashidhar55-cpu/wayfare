@@ -8,6 +8,7 @@ import { getTier } from "./queries/subscriptions";
 import { findUserByEmail } from "./queries/users";
 import { geocodeCity, searchPhoton } from "./queries/overpass";
 import { isGenericName, isParkingLikeName } from "./lib/place-quality";
+import { profileStyles } from "./lib/style-map";
 import { guessTimeZone, resolveTz, todayIn } from "./lib/tz";
 import { notify } from "./lib/notify";
 import { appUrl, sendTripInvite } from "./lib/mailer";
@@ -1148,7 +1149,7 @@ export const tripRouter = createRouter({
       // Personalize ranking: style overlap (input styles or saved taste
       // profile); dietary always comes from the saved preferences.
       const prefRows = await db.select().from(schema.preferences).where(eq(schema.preferences.userId, ctx.user.id)).limit(1);
-      const userStyles = new Set(input.styles?.length ? input.styles : (prefRows[0]?.styles ?? []));
+      const userStyles = input.styles?.length ? new Set(input.styles) : profileStyles(prefRows[0]);
       const dietary = parseDietary(prefRows[0]?.dietary);
       const ranked = rankPlaces(pool, userStyles, input.budgetBand, relaxedIds, kids);
 
@@ -1362,7 +1363,7 @@ export const tripRouter = createRouter({
       // Style inheritance: explicit styles, else the saved taste profile;
       // dietary always comes from the saved preferences.
       const prefRows = await db.select().from(schema.preferences).where(eq(schema.preferences.userId, ctx.user.id)).limit(1);
-      const userStyles = new Set(input.styles?.length ? input.styles : (prefRows[0]?.styles ?? []));
+      const userStyles = input.styles?.length ? new Set(input.styles) : profileStyles(prefRows[0]);
       const dietary = parseDietary(prefRows[0]?.dietary);
       const { pool, relaxedIds } = budgetCapPool(fresh, input.budgetBand);
       const ranked = rankPlaces(pool, userStyles, input.budgetBand, relaxedIds, kids);
@@ -2349,7 +2350,7 @@ export const tripRouter = createRouter({
           .from(schema.preferences)
           .where(eq(schema.preferences.userId, ctx.user.id))
           .limit(1);
-        const userStyles = new Set(prefRows[0]?.styles ?? []);
+        const userStyles = profileStyles(prefRows[0]);
         const dietary = parseDietary(prefRows[0]?.dietary);
         const { pool, relaxedIds } = budgetCapPool(nearPool, undefined);
         const ranked = rankPlaces(pool, userStyles, undefined, relaxedIds);

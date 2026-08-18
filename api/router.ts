@@ -27,6 +27,7 @@ import { wishlistRouter } from "./wishlist-router"; // r24-smart
 import { tokensRouter } from "./tokens-router"; // r24-smart
 import { travelRouter } from "./travel-router"; // r24-smart
 import { fxRouter } from "./fx-router"; // r27: live exchange rates
+import { promptRouter } from "./prompt-router"; // r29: free-text trip prompts
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -60,6 +61,7 @@ export const appRouter = createRouter({
   tokens: tokensRouter, // r24-smart
   travel: travelRouter, // r24-smart
   fx: fxRouter, // r27: live exchange rates
+  prompt: promptRouter, // r29: free-text trip prompts
 });
 
 export type AppRouter = typeof appRouter;

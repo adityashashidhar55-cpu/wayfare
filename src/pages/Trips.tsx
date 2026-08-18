@@ -12,8 +12,9 @@ import { EASE_EXPO } from '@/lib/motion';
 import {
   consumeImportRequest,
   consumePlanPrompt,
-  extractDestinationHint,
+  parsePrompt,
 } from '@/lib/plan-prompt';
+import type { TripIntent } from '@contracts/trip-prompt';
 import { TripHeroCard } from '@/components/trips/TripHeroCard';
 import { TripMemoryCard } from '@/components/trips/TripMemoryCard';
 import { BucketRail } from '@/components/trips/BucketRail';
@@ -149,7 +150,7 @@ export default function Trips() {
      Derived from the URL - no effect needed; closing clears the params. */
   const openFromUrl = searchParams.get('new') === '1';
   const prefillFromUrl = searchParams.get('dest') ?? undefined;
-  const [modalState, setModalState] = useState<{ open: boolean; prefill?: string }>({ open: false });
+  const [modalState, setModalState] = useState<{ open: boolean; prefill?: string; intent?: TripIntent | null }>({ open: false });
   const [aiOpen, setAiOpen] = useState(false);
   const [roadtripOpen, setRoadtripOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false); // r12-friends
@@ -181,7 +182,11 @@ export default function Trips() {
   useEffect(() => {
     const prompt = consumePlanPrompt();
     if (prompt && searchParams.get('new') !== '1') {
-      setModalState({ open: true, prefill: extractDestinationHint(prompt) });
+      /* r29: pass the WHOLE parsed intent, not just the destination. The
+         prompt used to be reduced to a place name here and everything else
+         the user said was discarded. */
+      const intent = parsePrompt(prompt);
+      setModalState({ open: true, prefill: intent.destination ?? undefined, intent });
     }
     if (consumeImportRequest() && searchParams.get('import') !== '1') {
       setSocialOpen(true);
@@ -299,7 +304,7 @@ export default function Trips() {
         >
           <PlansGallery prominent />
         </motion.div>
-        <CreateTripModal open={modalOpen} onOpenChange={onModalOpenChange} prefillDestination={prefill} atLimit={atLimit} />
+        <CreateTripModal open={modalOpen} onOpenChange={onModalOpenChange} prefillDestination={prefill} intent={modalState.intent} atLimit={atLimit} />
         <AiTripBuilderModal open={aiOpen} onOpenChange={setAiOpen} />
         <RoadtripBuilderModal open={roadtripOpen} onOpenChange={setRoadtripOpen} />
         <FriendsPlanningModal open={friendsOpen} onOpenChange={setFriendsOpen} /> {/* r12-friends */}
@@ -399,7 +404,7 @@ export default function Trips() {
         )}
       </motion.div>
 
-      <CreateTripModal open={modalOpen} onOpenChange={onModalOpenChange} prefillDestination={prefill} atLimit={atLimit} />
+      <CreateTripModal open={modalOpen} onOpenChange={onModalOpenChange} prefillDestination={prefill} intent={modalState.intent} atLimit={atLimit} />
       <AiTripBuilderModal open={aiOpen} onOpenChange={setAiOpen} />
       <RoadtripBuilderModal open={roadtripOpen} onOpenChange={setRoadtripOpen} />
       <FriendsPlanningModal open={friendsOpen} onOpenChange={setFriendsOpen} /> {/* r12-friends */}
