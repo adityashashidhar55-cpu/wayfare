@@ -317,16 +317,10 @@ export const authRouter = createRouter({
 
       let unionId: string;
 
-      if (existing) {
-        // An OAuth account (or a pending invite row) already holds this email
-        // but has no password. Attach one rather than refusing - the person
-        // demonstrably controls the address they signed up with.
-        unionId = existing.unionId;
-        await db
-          .update(schema.users)
-          .set({ passwordHash, name: existing.name ?? input.name ?? null })
-          .where(eq(schema.users.id, existing.id));
-      } else if (isGuestCaller) {
+      // NOTE: there is deliberately no "attach a password to the existing row"
+      // branch here any more. It was the takeover path described above, and
+      // with the CONFLICT throw in place `existing` is always null by now.
+      if (isGuestCaller) {
         // Upgrade the guest in place: same row, same id, so every trip,
         // expense and membership they created in the demo carries over.
         unionId = caller.unionId;
@@ -371,7 +365,9 @@ export const authRouter = createRouter({
       return {
         ...user,
         passwordHash: null,
-        upgradedFromGuest: isGuestCaller && !existing,
+        // `existing` is provably null past the CONFLICT above, so the guest
+        // flag alone is the answer now.
+        upgradedFromGuest: isGuestCaller,
       };
     }),
 
