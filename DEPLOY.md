@@ -31,11 +31,18 @@ bugs, so: not before the investor demo.
 
 ## Step 1 — Make the database (5 min)
 
-1. Go to <https://tidbcloud.com> and sign up.
-2. Create a **Serverless** cluster. Pick the region closest to you —
-   `Singapore (ap-southeast-1)` if you are in India.
-3. Click **Connect**. Choose **General** / connection string.
-4. Copy the string. It looks like:
+1. Go to <https://tidbcloud.com> and sign up. No credit card needed — the
+   free quota covers the first five instances in your org (5 GiB of row
+   storage and 50M request units a month each). Wayfare's whole place corpus
+   is a few hundred MB, so it sits well inside that.
+2. Create a **Starter** instance. (This used to be called **Serverless** —
+   PingCAP renamed it, so ignore any older guide, including the first version
+   of this one, that tells you to look for a Serverless button.) Pick the
+   region closest to you — `Singapore (ap-southeast-1)` if you are in India.
+3. Click **Connect** in the top right. Choose the **General** / connection
+   string option.
+4. Copy the string. Your username carries an instance prefix, so it looks
+   like:
 
    ```
    mysql://xxxx.root:PASSWORD@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/test
@@ -49,6 +56,10 @@ bugs, so: not before the investor demo.
    ```
 
 Keep that string. That is your `DATABASE_URL`.
+
+TiDB's public endpoint is TLS-only. You do not need to do anything about
+that: the app recognises a `*.tidbcloud.com` host and adds the TLS flag
+itself, which is the whole reason `normalizeDatabaseUrl` exists.
 
 > You do **not** need to create any tables, and you do **not** need to import
 > any data. The app does both by itself on its first start. See "What happens
@@ -68,6 +79,9 @@ Keep that string. That is your `DATABASE_URL`.
    | `APP_SECRET` | `Dpc-M4kYEjRNx9sMaqZPyv3Dt23GLvxcgcTh6a0ZhatSvhuO` |
    | `DATABASE_URL` | the string from step 1 |
    | `APP_URL` | leave blank for now |
+
+   (Render's paid tier is confusingly also called "Starter". It is unrelated
+   to TiDB's Starter plan. `render.yaml` already selects it.)
 
    `APP_ID` and `APP_SECRET` are freshly generated random values, not
    placeholders. They only need to be secret and stable.
