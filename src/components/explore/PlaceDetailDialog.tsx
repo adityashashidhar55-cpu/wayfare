@@ -128,11 +128,16 @@ export default function PlaceDetailDialog({
 
   const reportClosed = trpc.explore.reportClosed.useMutation({
     onSuccess: (d) => {
-      setReported(d.closedStatus === 'open' ? null : d.closedStatus);
+      // Only badge the place when the report actually changed the corpus
+      // (admin). Everyone else's report is queued for review - see
+      // explore.reportClosed.
+      setReported(d.applied && d.closedStatus !== 'open' ? d.closedStatus : null);
       setReportOpen(false);
       setReportNote('');
       toast(
-        d.closedStatus === 'open' ? 'Thanks, marked as open again' : 'Thanks, closure reported',
+        d.applied
+          ? (d.closedStatus === 'open' ? 'Marked as open again' : 'Marked as closed')
+          : 'Thanks, sent for review',
         { kind: 'success' },
       );
       void utils.explore.list.invalidate();

@@ -1265,10 +1265,19 @@ export const exploreRouter = createRouter({
   // ── r11-journal APPEND region: closures, nearby eats, place comments ──────
 
   /**
-   * Crowdsourced closure report. Any signed-in user can flag a place as
-   * temporarily/permanently closed (or reopen it); the new closedStatus is
-   * stored on the place and the report is logged for admin review.
-   * PlaceDetailDialog surfaces the banner + this report action.
+   * Crowdsourced closure report.
+   *
+   * r33 SECURITY: this used to write closedStatus straight onto the shared
+   * place row for ANY signed-in user, unmoderated. The docstring claimed the
+   * report was "logged for admin review"; the only sink was a console.log, and
+   * no procedure anywhere resets the flag - recovery meant a manual DB edit.
+   * Since guest accounts are free and unlimited (auth.guestLogin), a loop could
+   * mark all 526,142 places closed and there was no way back. The `open` value
+   * made it worse: a genuinely closed place could be quietly un-closed.
+   *
+   * Now a report from an ordinary user becomes a support ticket, which is what
+   * "logged for admin review" was always supposed to mean. Only an admin's
+   * report applies to the corpus directly.
    */
   reportClosed: authedQuery
     .input(
@@ -1286,14 +1295,33 @@ export const exploreRouter = createRouter({
         .where(eq(schema.explorePlaces.id, input.placeId))
         .limit(1);
       if (!place) throw new TRPCError({ code: "NOT_FOUND", message: "Place not found" });
-      await db
-        .update(schema.explorePlaces)
-        .set({ closedStatus: input.status })
-        .where(eq(schema.explorePlaces.id, input.placeId));
+
+      const isAdmin = ctx.user.role === "admin";
+      if (isAdmin) {
+        await db
+          .update(schema.explorePlaces)
+          .set({ closedStatus: input.status })
+          .where(eq(schema.explorePlaces.id, input.placeId));
+      } else {
+        await db.insert(schema.supportTickets).values({
+          userId: ctx.user.id,
+          category: "other",
+          message: `Closure report: place ${input.placeId} (${place.name}) -> ${input.status}${input.note ? `. Note: ${input.note}` : ""}`,
+        });
+      }
       console.log(
         `[explore.reportClosed] user ${ctx.user.id} → place ${input.placeId} (${place.name}): ${input.status}${input.note ? `, ${input.note}` : ""}`,
       );
-      return { ok: true as const, placeId: input.placeId, closedStatus: input.status };
+      // `applied` tells the client whether the corpus actually changed, so the
+      // UI can thank the reporter without claiming a status that is only
+      // pending review. Returning input.status unconditionally would have made
+      // the badge lie to every non-admin reporter.
+      return {
+        ok: true as const,
+        placeId: input.placeId,
+        applied: isAdmin,
+        closedStatus: input.status,
+      };
     }),
 
   /**

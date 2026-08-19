@@ -29,6 +29,40 @@ async function requireTripMembership(tripId: number, userId: number) {
   return rows[0];
 }
 
+/**
+ * r33 SECURITY: applyAdaptation MUTATES the itinerary, so membership is not
+ * enough - a viewer is read-only everywhere else in the app (see requireEditor
+ * in api/trip-router.ts) and must be here too.
+ */
+async function requireTripEditor(tripId: number, userId: number) {
+  const member = await requireTripMembership(tripId, userId);
+  if (member.role === "viewer") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Viewers cannot edit this trip" });
+  }
+  return member;
+}
+
+/**
+ * r33 SECURITY: trip_days ids are a global auto-increment sequence, so a day id
+ * from ANOTHER trip is a perfectly valid number. Every branch of
+ * applyAdaptation took dayId/withDayId straight from client input; the
+ * "flexible" branch then updated trip_days BY ID WITH NO TRIP PREDICATE, which
+ * is a cross-tenant write - any member of any trip could flip a day on a
+ * stranger's itinerary by guessing an integer. The swap branch had the milder
+ * version: moving stops onto a foreign dayId orphans them, because trips.get
+ * loads stops by tripId and they simply vanish from both trips.
+ */
+async function assertDayInTrip(dayId: number, tripId: number): Promise<void> {
+  const [row] = await getDb()
+    .select({ id: schema.tripDays.id })
+    .from(schema.tripDays)
+    .where(and(eq(schema.tripDays.id, dayId), eq(schema.tripDays.tripId, tripId)))
+    .limit(1);
+  if (!row) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "That day is not on this trip" });
+  }
+}
+
 export type TripWeatherRow = {
   dayId: number;
   date: string; // YYYY-MM-DD
@@ -275,7 +309,7 @@ export const weatherRouter = createRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await requireTripMembership(input.tripId, ctx.user.id);
+      await requireTripEditor(input.tripId, ctx.user.id);
       const db = getDb();
       const [trip] = await db
         .select()
@@ -283,6 +317,9 @@ export const weatherRouter = createRouter({
         .where(eq(schema.trips.id, input.tripId))
         .limit(1);
       if (!trip) throw new TRPCError({ code: "NOT_FOUND", message: "Trip not found" });
+      // Validate BOTH day ids against this trip before any branch writes.
+      await assertDayInTrip(input.dayId, input.tripId);
+      if (input.withDayId != null) await assertDayInTrip(input.withDayId, input.tripId);
 
       if (input.kind === "swap") {
         if (!input.withDayId) {
@@ -313,7 +350,12 @@ export const weatherRouter = createRouter({
         await db
           .update(schema.tripDays)
           .set({ flexible: true })
-          .where(eq(schema.tripDays.id, input.dayId));
+          .where(
+            and(
+              eq(schema.tripDays.id, input.dayId),
+              eq(schema.tripDays.tripId, input.tripId),
+            ),
+          );
         await notify(ctx.user.id, {
           kind: "weather",
           title: "Day marked flexible",

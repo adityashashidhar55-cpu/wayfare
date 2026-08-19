@@ -2044,7 +2044,7 @@ export const tripRouter = createRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await requireMembership(input.tripId, ctx.user.id);
+      await requireEditor(input.tripId, ctx.user.id);
       const result = await getDb().insert(schema.reservations).values({
         tripId: input.tripId,
         type: input.type,
@@ -2097,7 +2097,7 @@ export const tripRouter = createRouter({
   deleteReservation: authedQuery
     .input(z.object({ id: z.number(), tripId: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      await requireMembership(input.tripId, ctx.user.id);
+      await requireEditor(input.tripId, ctx.user.id);
       await getDb()
         .delete(schema.reservations)
         .where(and(eq(schema.reservations.id, input.id), eq(schema.reservations.tripId, input.tripId)));
@@ -2108,7 +2108,7 @@ export const tripRouter = createRouter({
   addChecklistItem: authedQuery
     .input(z.object({ tripId: z.number(), list: z.string().max(24), label: z.string().min(1).max(255) }))
     .mutation(async ({ ctx, input }) => {
-      await requireMembership(input.tripId, ctx.user.id);
+      await requireEditor(input.tripId, ctx.user.id);
       const result = await getDb().insert(schema.checklistItems).values({
         tripId: input.tripId,
         list: input.list,
@@ -2120,7 +2120,7 @@ export const tripRouter = createRouter({
   toggleChecklistItem: authedQuery
     .input(z.object({ id: z.number(), tripId: z.number(), done: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
-      await requireMembership(input.tripId, ctx.user.id);
+      await requireEditor(input.tripId, ctx.user.id);
       await getDb()
         .update(schema.checklistItems)
         .set({ done: input.done })
@@ -2131,7 +2131,7 @@ export const tripRouter = createRouter({
   deleteChecklistItem: authedQuery
     .input(z.object({ id: z.number(), tripId: z.number() }))
     .mutation(async ({ ctx, input }) => {
-      await requireMembership(input.tripId, ctx.user.id);
+      await requireEditor(input.tripId, ctx.user.id);
       await getDb()
         .delete(schema.checklistItems)
         .where(and(eq(schema.checklistItems.id, input.id), eq(schema.checklistItems.tripId, input.tripId)));
@@ -2142,7 +2142,7 @@ export const tripRouter = createRouter({
   saveNote: authedQuery
     .input(z.object({ tripId: z.number(), title: z.string().max(255).optional(), content: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      await requireMembership(input.tripId, ctx.user.id);
+      await requireEditor(input.tripId, ctx.user.id);
       const db = getDb();
       const existing = await db.select().from(schema.tripNotes).where(eq(schema.tripNotes.tripId, input.tripId)).limit(1);
       if (existing[0]) {

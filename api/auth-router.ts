@@ -284,10 +284,30 @@ export const authRouter = createRouter({
       const db = getDb();
 
       const existing = await findUserByEmail(email);
-      if (existing?.passwordHash) {
+      if (existing) {
+        /**
+         * r33 SECURITY: this used to be `if (existing?.passwordHash)`, so a row
+         * that existed WITHOUT a hash fell through to the branch below and had
+         * the caller's password attached to it - then a session was signed for
+         * `existing.unionId`. That is an account takeover, and it applied to
+         * exactly the rows least able to defend themselves:
+         *
+         *  - every Google/Apple user, who has no passwordHash by definition;
+         *  - every pending-invite row, created from an email address by
+         *    claimPendingTripInvites BEFORE that person has ever signed in.
+         *
+         * Invite a colleague, and anyone who knows their address could claim
+         * their row before they got to it - inheriting their trips, expense
+         * ledger, co-travellers' emails and subscription.
+         *
+         * The old comment argued the person "demonstrably controls the address
+         * they signed up with". They demonstrate nothing by typing it. Proving
+         * control of an address requires sending mail to it, which is what the
+         * password-reset flow already does.
+         */
         throw new TRPCError({
           code: "CONFLICT",
-          message: "An account with that email already exists. Try signing in.",
+          message: "An account with that email already exists. Sign in, or use the password reset link.",
         });
       }
 

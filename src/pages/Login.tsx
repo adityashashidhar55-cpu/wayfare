@@ -5,6 +5,7 @@ import { ArrowLeft, Chrome, Apple as AppleIcon, Sparkles, Loader2, Mail } from "
 import Logo from "@/components/Logo";
 import { useAuth } from "@/hooks/useAuth";
 import { trpc } from "@/providers/trpc";
+import { safeNextPath } from "@/lib/safe-next";
 import { apiBase } from "@/lib/apiBase";
 import { captureReferralParam } from "@/lib/referral";
 
@@ -72,6 +73,14 @@ function ProviderButton({
   );
 }
 
+/** Resolve ?next= against the real origin. See src/lib/safe-next.ts. */
+function safeNext(): string {
+  return safeNextPath(
+    new URLSearchParams(window.location.search).get("next"),
+    window.location.origin,
+  );
+}
+
 export default function Login() {
   const { isAuthenticated, isLoading } = useAuth();
   const [guestError, setGuestError] = useState<string | null>(null);
@@ -93,9 +102,8 @@ export default function Login() {
   const passwordLogin = trpc.auth.loginWithPassword.useMutation({
     onSuccess: () => {
       // r24-social: /login?next=/p/<slug> returns the visitor to the page
-      // they came from (published-trip join flow); only same-origin paths.
-      const next = new URLSearchParams(window.location.search).get("next");
-      window.location.href = next && next.startsWith("/") ? next : "/trips";
+      // they came from (published-trip join flow); same-origin paths only.
+      window.location.href = safeNext();
     },
     onError: (e) => setCredError(e.message || "Could not sign in. Try again."),
   });
@@ -103,8 +111,7 @@ export default function Login() {
      so trips built in the demo carry over instead of being orphaned. */
   const register = trpc.auth.register.useMutation({
     onSuccess: () => {
-      const next = new URLSearchParams(window.location.search).get("next");
-      window.location.href = next && next.startsWith("/") ? next : "/trips";
+      window.location.href = safeNext();
     },
     onError: (e) => setCredError(e.message || "Could not create the account. Try again."),
   });
