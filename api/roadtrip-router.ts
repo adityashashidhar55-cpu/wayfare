@@ -1829,6 +1829,36 @@ export const roadtripRouter = createRouter({
               notes: JSON.stringify({ transfer }),
               position: position++,
             });
+            // r34: one place worth pulling over for on the drive itself.
+            // Stops used to come only from the cities, so the viewpoint or
+            // fort between them never made it into a road trip. Car legs of
+            // 60 km+ only - on a short hop, or on a train, there is no "on
+            // the way". Fail-open: a lookup error never blocks the plan.
+            if (input.mode === "car" && km >= 60) {
+              const line = interpolate([city.lng, city.lat], [next.lng, next.lat], 40) as LngLat[];
+              const [pick] = await roadsidePlaces(
+                line,
+                cities.map((c) => ({ lat: c.lat, lng: c.lng })),
+                10,
+                1,
+              ).catch(() => []);
+              if (pick) {
+                await db.insert(schema.stops).values({
+                  tripId,
+                  dayId,
+                  name: pick.name,
+                  category: pick.category,
+                  address: `On the way to ${next.name}`,
+                  lat: pick.lat,
+                  lng: pick.lng,
+                  startTime: null,
+                  durationMin: 45,
+                  notes: `On the drive from ${city.name} to ${next.name}, about ${Math.max(1, Math.round(pick.detourKm))} km off the direct line.${pick.description ? `\n\n${pick.description}` : ""}`,
+                  image: pick.image,
+                  position: position++,
+                });
+              }
+            }
             transfers.push({
               from: city.name,
               to: next.name,

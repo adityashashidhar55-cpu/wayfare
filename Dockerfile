@@ -16,7 +16,8 @@ WORKDIR /app
 # `COPY package.json package-lock.json ./` failed on a missing file and the
 # image could not build AT ALL. Every Docker host (Railway, Render, Fly, Koyeb)
 # would have failed on the first deploy.
-COPY package.json ./
+# r34: .npmrc carries legacy-peer-deps; without it npm install crashes.
+COPY package.json .npmrc ./
 RUN npm install --include=dev --no-audit --no-fund
 
 COPY . .
@@ -27,7 +28,7 @@ FROM node:22-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY package.json ./
+COPY package.json .npmrc ./
 RUN npm install --omit=dev --no-audit --no-fund
 
 COPY --from=build /app/dist ./dist
