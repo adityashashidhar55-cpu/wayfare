@@ -124,6 +124,31 @@ export function replayable(stmt: string): string {
   return /^\s*INSERT\s+INTO/i.test(stmt) ? `${stmt} ON DUPLICATE KEY UPDATE id = id` : stmt;
 }
 
+/**
+ * r34: TiDB Cloud (and most hosts) hand you a connection string ending in
+ * `/test` or `/sys`, and "Unknown database 'wayfare'" was the most likely
+ * first-deploy failure. If the named database does not exist, create it.
+ */
+async function connectCreatingDatabase(url: string): Promise<Connection> {
+  try {
+    return await mysql.createConnection({ uri: url });
+  } catch (e) {
+    if ((e as { errno?: number }).errno !== 1049) throw e; // ER_BAD_DB_ERROR
+    const u = new URL(url);
+    const db = decodeURIComponent(u.pathname.replace(/^\//, ""));
+    if (!/^[A-Za-z0-9_]+$/.test(db)) throw e;
+    u.pathname = "/";
+    const admin = await mysql.createConnection({ uri: u.toString() });
+    try {
+      await admin.query(`CREATE DATABASE IF NOT EXISTS \`${db}\``);
+      console.log(`[bootstrap] created database ${db}`);
+    } finally {
+      await admin.end();
+    }
+    return mysql.createConnection({ uri: url });
+  }
+}
+
 export async function bootstrapDatabase(): Promise<void> {
   if (process.env.AUTO_BOOTSTRAP === "0") {
     console.log("[bootstrap] AUTO_BOOTSTRAP=0, skipping");
@@ -135,7 +160,7 @@ export async function bootstrapDatabase(): Promise<void> {
     return;
   }
 
-  const conn = await mysql.createConnection({ uri: url });
+  const conn = await connectCreatingDatabase(url);
   try {
     // ── Schema ───────────────────────────────────────────────────────────
     const schemaPath = resolve(process.cwd(), SCHEMA_FILE);

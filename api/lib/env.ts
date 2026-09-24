@@ -47,7 +47,9 @@ export const env = {
   mailFrom: process.env.MAIL_FROM ?? "",
   // Public origin used to build links inside emails and payment callbacks.
   // Without this, invite links point at localhost in production.
-  appUrl: process.env.APP_URL ?? "",
+  // r34: Render sets RENDER_EXTERNAL_URL itself, so a Render deploy needs no
+  // manual APP_URL step. An explicit APP_URL (custom domain) still wins.
+  appUrl: process.env.APP_URL || process.env.RENDER_EXTERNAL_URL || "",
 
   // ── r27: payments (Razorpay) ──────────────────────────────────────────────
   // Razorpay rather than Stripe: this is an India-first product and Stripe
