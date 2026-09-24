@@ -80,3 +80,20 @@ describe("normalizeDatabaseUrl", () => {
     expect(normalizeDatabaseUrl("")).toBe("");
   });
 });
+
+import { databaseOf, withDatabase } from "./db-url";
+
+describe("r34: system-schema defaults are redirected to the app database", () => {
+  const tidb = "mysql://abc.root:p%40ss%2Fw0rd@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/sys";
+  it("moves TiDB's default /sys to /wayfare, keeping the password byte-identical", () => {
+    const out = normalizeDatabaseUrl(tidb);
+    expect(out.startsWith("mysql://abc.root:p%40ss%2Fw0rd@gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/wayfare?ssl=")).toBe(true);
+  });
+  it("leaves a real database name alone", () => {
+    expect(databaseOf(normalizeDatabaseUrl("mysql://u:p@localhost:3306/mydb"))).toBe("mydb");
+  });
+  it("fills in a missing database and keeps query params", () => {
+    expect(normalizeDatabaseUrl("mysql://u:p@localhost:3306?x=1")).toBe("mysql://u:p@localhost:3306/wayfare?x=1");
+    expect(withDatabase("mysql://u:p@h:1/a?x=1", "")).toBe("mysql://u:p@h:1/?x=1");
+  });
+});

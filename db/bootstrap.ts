@@ -24,7 +24,7 @@ import { resolve } from "node:path";
 import { createGunzip } from "node:zlib";
 import mysql from "mysql2/promise";
 import type { Connection } from "mysql2/promise";
-import { normalizeDatabaseUrl } from "../api/lib/db-url";
+import { databaseOf, normalizeDatabaseUrl, withDatabase } from "../api/lib/db-url";
 
 /** Generated from db/schema.ts - see wf-data/gen-schema.mjs. */
 const SCHEMA_FILE = "db/schema.sql";
@@ -134,11 +134,9 @@ async function connectCreatingDatabase(url: string): Promise<Connection> {
     return await mysql.createConnection({ uri: url });
   } catch (e) {
     if ((e as { errno?: number }).errno !== 1049) throw e; // ER_BAD_DB_ERROR
-    const u = new URL(url);
-    const db = decodeURIComponent(u.pathname.replace(/^\//, ""));
+    const db = databaseOf(url);
     if (!/^[A-Za-z0-9_]+$/.test(db)) throw e;
-    u.pathname = "/";
-    const admin = await mysql.createConnection({ uri: u.toString() });
+    const admin = await mysql.createConnection({ uri: withDatabase(url, "") });
     try {
       await admin.query(`CREATE DATABASE IF NOT EXISTS \`${db}\``);
       console.log(`[bootstrap] created database ${db}`);

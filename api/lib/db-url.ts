@@ -50,8 +50,40 @@ export function requiresTls(host: string): boolean {
   return TLS_REQUIRED_SUFFIXES.some((suffix) => h.endsWith(suffix));
 }
 
+/**
+ * r34: the database named in a mysql:// URL, and a way to swap it, by string
+ * surgery only (see above: never round-trip a password through new URL()).
+ */
+function splitPath(url: string): { head: string; db: string; tail: string } | null {
+  const m = /^(mysql:\/\/[^/?#]*)(?:\/([^?#]*))?(.*)$/.exec(url);
+  if (!m) return null;
+  // The authority may contain "/" only inside an encoded password, never raw.
+  return { head: m[1]!, db: m[2] ?? "", tail: m[3] ?? "" };
+}
+
+export function databaseOf(url: string): string {
+  return decodeURIComponent(splitPath(url)?.db ?? "");
+}
+
+export function withDatabase(url: string, db: string): string {
+  const p = splitPath(url);
+  if (!p) return url;
+  return `${p.head}/${encodeURIComponent(db)}${p.tail}`;
+}
+
+/**
+ * Schemas a dashboard's "copy connection string" button defaults to that must
+ * never hold app tables. TiDB Cloud's dialog defaults to `sys`; others use
+ * `test` or nothing at all. The app's 41 tables would land in a system schema.
+ */
+const SYSTEM_SCHEMAS = new Set(["", "sys", "mysql", "information_schema", "performance_schema", "test"]);
+export const DEFAULT_DB_NAME = "wayfare";
+
 export function normalizeDatabaseUrl(url: string, sslEnv?: string): string {
   if (!url) return url;
+  if (url.startsWith("mysql://") && SYSTEM_SCHEMAS.has(databaseOf(url).toLowerCase())) {
+    url = withDatabase(url, DEFAULT_DB_NAME);
+  }
   const mode = (sslEnv ?? "").toLowerCase();
   if (mode === "off") return url;
   if (!url.startsWith("mysql://")) return url;
