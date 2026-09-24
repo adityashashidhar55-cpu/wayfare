@@ -16,10 +16,10 @@ services:
     # ap-southeast cluster - keep the app and the database in the same region
     # or every query pays a round trip across an ocean.
     region: singapore
-    # `free` works, but a free instance sleeps after 15 minutes idle and takes
-    # ~50 seconds to wake. That is the wrong first impression for a demo, so
-    # this defaults to the always-on plan. Change it if you are just testing.
-    plan: starter
+    # r34: `free` - costs nothing and needs no card. It sleeps after 15 minutes
+    # idle and takes ~50 seconds to wake. Switch to `starter` ($7/mo,
+    # always on) before sending the link to an investor.
+    plan: free
     # /healthz answers immediately; the first-boot corpus load runs in the
     # background AFTER the port is bound, so it never trips the health check.
     healthCheckPath: /healthz
