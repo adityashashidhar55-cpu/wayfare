@@ -166,6 +166,8 @@ export default function TripExpenses() {
                   date: e.date,
                   paidById: e.paidById,
                   splitMemberIds: e.splits.map((s) => s.memberId),
+                  // r34: restore the exact shares, not an equal re-split.
+                  splitWeights: e.splits.filter((s) => s.shareCents > 0).map((s) => ({ memberId: s.memberId, weight: s.shareCents })),
                 }),
             },
           });

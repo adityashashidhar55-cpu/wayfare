@@ -12,6 +12,26 @@ function datePlus(days: number): string {
 }
 
 /**
+ * r34: the two travel companions on the demo trip need real user ids so the
+ * Crew tab can show them talking and voting (trip_messages.userId and
+ * stop_votes.userId are NOT NULL). One shared row per companion, created on
+ * first use and reused by every guest - no password, so nobody can sign in
+ * as them.
+ */
+async function ensureCompanion(unionId: string, name: string): Promise<number> {
+  const db = getDb();
+  const [row] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.unionId, unionId)).limit(1);
+  if (row) return Number(row.id);
+  try {
+    await db.insert(schema.users).values({ unionId, name });
+  } catch {
+    /* a concurrent guest created it first - fall through and read it */
+  }
+  const [again] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.unionId, unionId)).limit(1);
+  return Number(again!.id);
+}
+
+/**
  * Idempotently seed a rich demo account so first-time visitors can explore
  * every feature (Voyager tier, trips, stops, expenses, reservations…).
  */
@@ -94,10 +114,12 @@ export async function seedDemoData(userId: number) {
   });
   const tripId = Number(tripRes[0].insertId);
 
+  const danielUserId = await ensureCompanion("wayfare-demo-companion-daniel", "Daniel Kim");
+  const priyaUserId = await ensureCompanion("wayfare-demo-companion-priya", "Priya Shah");
   await db.insert(schema.tripMembers).values([
     { tripId, userId, name: "Alex Rivers", role: "owner", presenceColor: "#BC5934" },
-    { tripId, userId: null, name: "Daniel Kim", role: "editor", presenceColor: "#44604F" },
-    { tripId, userId: null, name: "Priya Shah", role: "editor", presenceColor: "#6E7FA3" },
+    { tripId, userId: danielUserId, name: "Daniel Kim", role: "editor", presenceColor: "#44604F" },
+    { tripId, userId: priyaUserId, name: "Priya Shah", role: "editor", presenceColor: "#6E7FA3" },
   ]);
   /**
    * Read the ids back instead of assuming insertId, insertId+1, insertId+2.
@@ -172,9 +194,9 @@ export async function seedDemoData(userId: number) {
 
   // Expenses (~10, mixed currencies, split among 3)
   const expenseDefs: {
-    title: string; cat: string; cents: number; cur: string; day: number; paidBy: number;
+    title: string; cat: string; /** whole yen */ cents: number; cur: string; day: number; paidBy: number;
   }[] = [
-    { title: "Ryokan Yachiyo: 3 nights", cat: "lodging", cents: 54000, cur: "JPY", day: 0, paidBy: ownerMemberId },
+    { title: "Ryokan Yachiyo: 3 nights", cat: "lodging", cents: 162000, cur: "JPY", day: 0, paidBy: ownerMemberId },
     { title: "Haruka airport express ×3", cat: "transport", cents: 10920, cur: "JPY", day: 0, paidBy: danielId },
     { title: "Ichiran Ramen ×3", cat: "food", cents: 4470, cur: "JPY", day: 0, paidBy: priyaId },
     { title: "Fushimi Inari omamori", cat: "shopping", cents: 2400, cur: "JPY", day: 0, paidBy: ownerMemberId },
@@ -186,7 +208,12 @@ export async function seedDemoData(userId: number) {
     { title: "Suica top-ups", cat: "transport", cents: 9000, cur: "JPY", day: 3, paidBy: priyaId },
   ];
   const memberIds = [ownerMemberId, danielId, priyaId];
-  for (const e of expenseDefs) {
+  for (const def of expenseDefs) {
+    // r34: the table above is written in whole yen for readability. Every
+    // amount in this app is stored in minor units x100 - even for zero-decimal
+    // currencies, where formatMoney divides by 100 - so a raw 54000 used to
+    // render as a 540-yen, $3.55 ryokan and a $7.64 trip.
+    const e = { ...def, cents: def.cents * 100 };
     const homeCents = convertCents(e.cents, e.cur, "USD");
     const r = await db.insert(schema.expenses).values({
       tripId,
@@ -228,6 +255,42 @@ export async function seedDemoData(userId: number) {
     title: "Japan notes",
     content: "Cash is still king outside big stations. Tipping is not expected. Konbini onigiri = best budget breakfast. Book the Camellia tea ceremony for the first week, it fills up.",
   });
+
+  // r34: a live-looking Crew tab - a short group chat and a few contested
+  // votes, so the group features are visible the moment a guest opens it.
+  try {
+    const tripStops = await db
+      .select({ id: schema.stops.id, name: schema.stops.name })
+      .from(schema.stops)
+      .where(eq(schema.stops.tripId, tripId));
+    const stopId = (needle: string) => tripStops.find((x) => x.name.toLowerCase().includes(needle))?.id;
+    const inari = stopId("fushimi");
+    const deer = stopId("nara");
+    const bamboo = stopId("bamboo");
+    await db.insert(schema.tripMessages).values([
+      { tripId, userId: danielUserId, authorName: "Daniel Kim", body: "Fushimi Inari at 7am before the crowds? The upper gates are empty that early.", stopId: inari ?? null },
+      { tripId, userId: priyaUserId, authorName: "Priya Shah", body: "Yes to early. Can we swap the bamboo grove for the Philosopher's Path though? Arashiyama is wall-to-wall people in October." },
+      { tripId, userId: danielUserId, authorName: "Daniel Kim", body: "Put it to a vote in the list on the right, loser buys the first round at Bar K6." },
+      { tripId, userId: priyaUserId, authorName: "Priya Shah", body: "Also I logged the Haruka tickets and the ramen, check the Expenses tab, we're square so far." },
+    ]);
+    const votes: { stopId: number | undefined; userId: number; vote: "up" | "down" }[] = [
+      { stopId: inari, userId: danielUserId, vote: "up" },
+      { stopId: inari, userId: priyaUserId, vote: "up" },
+      { stopId: bamboo, userId: danielUserId, vote: "up" },
+      { stopId: bamboo, userId: priyaUserId, vote: "down" },
+      { stopId: deer, userId: priyaUserId, vote: "up" },
+    ];
+    const rows = votes.filter((v): v is { stopId: number; userId: number; vote: "up" | "down" } => v.stopId != null)
+      .map((v) => ({ tripId, ...v }));
+    if (rows.length) await db.insert(schema.stopVotes).values(rows);
+    // A private item only the guest sees, so "Only you" shows up on Checklists.
+    await db.insert(schema.checklistItems).values({
+      tripId, list: "packing", label: "Motion-sickness tablets (Nara bus)", done: false, position: 4,
+      ownerId: userId, visibility: "private",
+    });
+  } catch (e) {
+    console.warn("[demo] crew seed skipped:", (e as Error).message);
+  }
 
   // ── Second upcoming trip: Lisbon ─────────────────────────────────────────
   const lRes = await db.insert(schema.trips).values({

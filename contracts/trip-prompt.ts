@@ -169,6 +169,26 @@ function at(hay: string, needle: string): number {
 }
 
 /**
+ * r34: EVERY occurrence of a phrase, tolerating a plural ("forts", "palaces").
+ * `at()` only saw the first match, so "temples but no crowded temples" judged
+ * the un-negated first "temples" and never looked at the refused one; and the
+ * singular-only boundary match meant "forts and palaces" matched nothing.
+ * These two tests existed in contracts/ but vitest never ran that folder.
+ */
+function allAt(hay: string, needle: string): number[] {
+  const n = needle.trim();
+  if (!n) return [];
+  const plural = /[a-z]$/i.test(n) ? "(?:e?s)?" : "";
+  const re = new RegExp(`(^|[^a-z0-9])(${esc(n)}${plural})(?=[^a-z0-9]|$)`, "gi");
+  const out: number[] = [];
+  for (let m = re.exec(hay); m; m = re.exec(hay)) {
+    out.push(m.index);
+    if (m[0].length === 0) re.lastIndex++;
+  }
+  return out;
+}
+
+/**
  * True when `phrase` sits inside a negated span. We look backwards from the
  * phrase for a negator within NEG_WINDOW characters and check no comma or
  * "but"/"and" resets the clause in between - so "no museums, love food"
@@ -277,10 +297,12 @@ export function parseTripPrompt(raw: string): TripIntent {
   // Longest phrases first so "street food" beats "food".
   const ordered = [...STYLE_PHRASES].sort((a, b) => b[0].length - a[0].length);
   for (const [phrase, style] of ordered) {
-    const idx = at(t, phrase);
-    if (idx < 0) continue;
+    const hits = allAt(t, phrase);
+    if (!hits.length) continue;
     matchedSpans.push(phrase);
-    if (isNegated(t, idx)) avoid.add(style); else styles.add(style);
+    for (const idx of hits) {
+      if (isNegated(t, idx)) avoid.add(style); else styles.add(style);
+    }
   }
   for (const [phrase, style] of AVOID_SYNONYMS) {
     const idx = at(t, phrase);

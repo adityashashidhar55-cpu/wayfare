@@ -13,6 +13,7 @@ import { guessTimeZone, resolveTz, todayIn } from "./lib/tz";
 import { notify } from "./lib/notify";
 import { appUrl, sendTripInvite } from "./lib/mailer";
 import { convertCents } from "@contracts/fx";
+import { splitByWeights, splitEqually } from "@contracts/split";
 import { getRates } from "./lib/fx-refresh";
 import { TIERS } from "@contracts/premium";
 import { isKidRecharge, kidClass, kidScore } from "@contracts/kids";
@@ -892,6 +893,28 @@ const stopInput = z.object({
   image: z.string().max(512).optional(),
 });
 
+/**
+ * r34: every member id an expense names must belong to THIS trip. addSettlement
+ * already checked this; addExpense/updateExpense did not, so a payer or split
+ * member from another trip (ids are enumerable) could be written into a ledger.
+ */
+async function assertMembersInTrip(tripId: number, memberIds: number[]): Promise<void> {
+  const ids = [...new Set(memberIds)];
+  if (!ids.length) return;
+  const rows = await getDb()
+    .select({ id: schema.tripMembers.id })
+    .from(schema.tripMembers)
+    .where(and(eq(schema.tripMembers.tripId, tripId), inArray(schema.tripMembers.id, ids)));
+  if (rows.length !== ids.length) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Every person on an expense must be a member of this trip" });
+  }
+}
+
+const splitWeightsInput = z
+  .array(z.object({ memberId: z.number(), weight: z.number().positive().max(1e9) }))
+  .max(50)
+  .optional();
+
 export const tripRouter = createRouter({
   // ── Trip CRUD ────────────────────────────────────────────────────────────
   list: authedQuery.query(async ({ ctx }) => {
@@ -957,7 +980,12 @@ export const tripRouter = createRouter({
         db.select().from(schema.stops).where(eq(schema.stops.tripId, input.id)).orderBy(asc(schema.stops.position)),
         db.select().from(schema.expenses).where(eq(schema.expenses.tripId, input.id)),
         db.select().from(schema.reservations).where(eq(schema.reservations.tripId, input.id)),
-        db.select().from(schema.checklistItems).where(eq(schema.checklistItems.tripId, input.id)).orderBy(asc(schema.checklistItems.position)),
+        // r34: private checklist items (r29) were leaking here - this returned
+        // EVERY row, so another member's "pack my inhaler" showed on your list.
+        db.select().from(schema.checklistItems).where(and(
+          eq(schema.checklistItems.tripId, input.id),
+          or(eq(schema.checklistItems.visibility, "shared"), eq(schema.checklistItems.ownerId, ctx.user.id)),
+        )).orderBy(asc(schema.checklistItems.position)),
         db.select().from(schema.tripNotes).where(eq(schema.tripNotes.tripId, input.id)).limit(1),
       ]);
     const expenseIds = expenseRows.map((e) => e.id);
@@ -1906,10 +1934,17 @@ export const tripRouter = createRouter({
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         paidById: z.number(),
         splitMemberIds: z.array(z.number()).optional(),
+        /** r34: unequal split - shares proportional to each weight. Wins over splitMemberIds. */
+        splitWeights: splitWeightsInput,
       }),
     )
     .mutation(async ({ ctx, input }) => {
       await requireEditor(input.tripId, ctx.user.id);
+      await assertMembersInTrip(input.tripId, [
+        input.paidById,
+        ...(input.splitMemberIds ?? []),
+        ...(input.splitWeights ?? []).map((w) => w.memberId),
+      ]);
       const db = getDb();
       const [trip] = await db.select().from(schema.trips).where(eq(schema.trips.id, input.tripId)).limit(1);
       // r27: live rates. homeCents is PERSISTED and drives every balance and
@@ -1928,21 +1963,17 @@ export const tripRouter = createRouter({
         date: input.date,
       });
       const expenseId = Number(result[0].insertId);
-      let memberIds = input.splitMemberIds;
-      if (!memberIds?.length) {
-        const members = await db.select().from(schema.tripMembers).where(eq(schema.tripMembers.tripId, input.tripId));
-        memberIds = members.map((m) => m.id);
+      let shares = input.splitWeights?.length ? splitByWeights(homeCents, input.splitWeights) : [];
+      if (!shares.length) {
+        let memberIds = input.splitMemberIds;
+        if (!memberIds?.length) {
+          const members = await db.select().from(schema.tripMembers).where(eq(schema.tripMembers.tripId, input.tripId));
+          memberIds = members.map((m) => m.id);
+        }
+        shares = splitEqually(homeCents, memberIds);
       }
-      if (memberIds.length) {
-        const base = Math.floor(homeCents / memberIds.length);
-        let remainder = homeCents - base * memberIds.length;
-        await db.insert(schema.expenseSplits).values(
-          memberIds.map((memberId) => ({
-            expenseId,
-            memberId,
-            shareCents: base + (remainder-- > 0 ? 1 : 0),
-          })),
-        );
+      if (shares.length) {
+        await db.insert(schema.expenseSplits).values(shares.map((sh) => ({ expenseId, ...sh })));
       }
       return { id: expenseId, homeCents };
     }),
@@ -1959,11 +1990,17 @@ export const tripRouter = createRouter({
         date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
         paidById: z.number().optional(),
         splitMemberIds: z.array(z.number()).optional(),
+        splitWeights: splitWeightsInput,
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, tripId, splitMemberIds, ...patch } = input;
+      const { id, tripId, splitMemberIds, splitWeights, ...patch } = input;
       await requireEditor(tripId, ctx.user.id);
+      await assertMembersInTrip(tripId, [
+        ...(patch.paidById != null ? [patch.paidById] : []),
+        ...(splitMemberIds ?? []),
+        ...(splitWeights ?? []).map((w) => w.memberId),
+      ]);
       const db = getDb();
       if (patch.amountCents || patch.currency) {
         const [trip] = await db.select().from(schema.trips).where(eq(schema.trips.id, tripId)).limit(1);
@@ -1982,7 +2019,19 @@ export const tripRouter = createRouter({
         .update(schema.expenses)
         .set(patch)
         .where(and(eq(schema.expenses.id, id), eq(schema.expenses.tripId, tripId)));
-      if (splitMemberIds) {
+      // r34: an amount/currency change used to leave the old splits in place,
+      // so the ledger's shares no longer summed to the expense. Re-split then
+      // too, keeping each member's current proportion.
+      let resplit: { memberId: number; weight: number }[] | null =
+        splitWeights?.length ? splitWeights
+        : splitMemberIds ? splitMemberIds.map((memberId) => ({ memberId, weight: 1 }))
+        : null;
+      if (!resplit && (patch.amountCents || patch.currency)) {
+        const current = await db.select().from(schema.expenseSplits).where(eq(schema.expenseSplits.expenseId, id));
+        const allZero = current.every((c) => c.shareCents <= 0);
+        resplit = current.map((c) => ({ memberId: c.memberId, weight: allZero ? 1 : Math.max(0, c.shareCents) }));
+      }
+      if (resplit) {
         const [expense] = await db
           .select()
           .from(schema.expenses)
@@ -1990,16 +2039,9 @@ export const tripRouter = createRouter({
           .limit(1);
         if (!expense) throw new TRPCError({ code: "NOT_FOUND", message: "Expense not found on this trip" });
         await db.delete(schema.expenseSplits).where(eq(schema.expenseSplits.expenseId, id));
-        if (splitMemberIds.length) {
-          const base = Math.floor(expense.homeCents / splitMemberIds.length);
-          let remainder = expense.homeCents - base * splitMemberIds.length;
-          await db.insert(schema.expenseSplits).values(
-            splitMemberIds.map((memberId) => ({
-              expenseId: id,
-              memberId,
-              shareCents: base + (remainder-- > 0 ? 1 : 0),
-            })),
-          );
+        const shares = splitByWeights(expense.homeCents, resplit);
+        if (shares.length) {
+          await db.insert(schema.expenseSplits).values(shares.map((sh) => ({ expenseId: id, ...sh })));
         }
       }
       return { ok: true };
@@ -2124,7 +2166,12 @@ export const tripRouter = createRouter({
       await getDb()
         .update(schema.checklistItems)
         .set({ done: input.done })
-        .where(and(eq(schema.checklistItems.id, input.id), eq(schema.checklistItems.tripId, input.tripId)));
+        .where(and(
+          eq(schema.checklistItems.id, input.id),
+          eq(schema.checklistItems.tripId, input.tripId),
+          // r34: an editor must not be able to flip or delete another member's private item.
+          or(eq(schema.checklistItems.visibility, "shared"), eq(schema.checklistItems.ownerId, ctx.user.id)),
+        ));
       return { ok: true };
     }),
 
@@ -2134,7 +2181,12 @@ export const tripRouter = createRouter({
       await requireEditor(input.tripId, ctx.user.id);
       await getDb()
         .delete(schema.checklistItems)
-        .where(and(eq(schema.checklistItems.id, input.id), eq(schema.checklistItems.tripId, input.tripId)));
+        .where(and(
+          eq(schema.checklistItems.id, input.id),
+          eq(schema.checklistItems.tripId, input.tripId),
+          // r34: an editor must not be able to flip or delete another member's private item.
+          or(eq(schema.checklistItems.visibility, "shared"), eq(schema.checklistItems.ownerId, ctx.user.id)),
+        ));
       return { ok: true };
     }),
 

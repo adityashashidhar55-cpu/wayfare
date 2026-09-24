@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Navigate, useParams, useSearchParams } from "react-router";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { trpc } from "@/providers/trpc";
 import { isForbiddenError, shareTokenFromError } from "@/lib/trip-access";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -179,9 +180,24 @@ export default function TripWorkspace() {
     );
   };
 
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, error } = trpc.trips.get.useQuery(
     { id: tripId },
-    { enabled: Number.isFinite(tripId), retry: 1 }
+    {
+      enabled: Number.isFinite(tripId),
+      retry: 1,
+      /* r34: live-ish sync. Member B used to see member A's edits only after
+         a remount. Poll every 10s, but only for trips with more than one
+         member (a solo trip has nobody else to hear from), only while the tab
+         is visible (react-query pauses in the background), and never while a
+         local edit is in flight - a poll landing between an optimistic patch
+         and its server write would briefly undo what the user just did. */
+      refetchInterval: (query) =>
+        (query.state.data?.members.length ?? 0) > 1 && queryClient.isMutating() === 0
+          ? 10_000
+          : false,
+      refetchOnWindowFocus: true,
+    }
   );
 
   if (!Number.isFinite(tripId)) return <TripNotFound />;

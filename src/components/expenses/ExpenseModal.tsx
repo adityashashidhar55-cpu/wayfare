@@ -132,7 +132,21 @@ function ExpenseForm({
   const [splitIds, setSplitIds] = useState<number[]>(
     editing ? editing.splits.map((s) => s.memberId) : members.map((m) => m.id),
   );
-  const [method, setMethod] = useState<'equal' | 'exact' | 'percent'>('equal');
+  /* r34: exact and percent splits are real now (they used to toast "on the
+     way"). Both are sent as weights; the server turns weights into cents. */
+  const unequalEdit = useMemo(() => {
+    if (!editing || editing.splits.length < 2) return false;
+    const c = editing.splits.map((x) => x.shareCents);
+    return Math.max(...c) - Math.min(...c) > 1;
+  }, [editing]);
+  const [method, setMethod] = useState<'equal' | 'exact' | 'percent'>(unequalEdit ? 'percent' : 'equal');
+  const [weights, setWeights] = useState<Record<number, string>>(() => {
+    if (!editing || !unequalEdit) return {};
+    const total = editing.splits.reduce((a, x) => a + x.shareCents, 0) || 1;
+    return Object.fromEntries(
+      editing.splits.map((x) => [x.memberId, String(Math.round((x.shareCents / total) * 1000) / 10)]),
+    );
+  });
   const [date, setDate] = useState(editing?.date ?? todayISO());
   const [moreOpen, setMoreOpen] = useState(false);
   const [shake, setShake] = useState(0);
@@ -143,6 +157,18 @@ function ExpenseForm({
     const n = Number.parseFloat(amount.replace(/,/g, ''));
     return Number.isFinite(n) && n > 0 ? Math.round(n * 100) : 0;
   }, [amount]);
+
+  const weightSum = useMemo(
+    () =>
+      splitIds.reduce((a, id) => {
+        const n = Number.parseFloat((weights[id] ?? '').replace(/,/g, ''));
+        return a + (Number.isFinite(n) && n > 0 ? n : 0);
+      }, 0),
+    [splitIds, weights],
+  );
+  const splitRemainder =
+    method === 'exact' ? amountCents / 100 - weightSum : method === 'percent' ? 100 - weightSum : 0;
+  const splitValid = method === 'equal' || Math.abs(splitRemainder) < 0.005;
 
   const homePreview = amountCents > 0 ? convertCents(amountCents, currency, homeCurrency) : 0;
   const perPerson = splitIds.length > 0 ? Math.round(homePreview / splitIds.length) : 0;
@@ -188,7 +214,26 @@ function ExpenseForm({
       titleRef.current?.focus();
       return;
     }
+    if (!splitValid) {
+      toast(
+        method === 'exact'
+          ? 'The amounts per person need to add up to the total'
+          : 'The percentages need to add up to 100',
+        { tone: 'danger' },
+      );
+      return;
+    }
+    const splitWeights =
+      method === 'equal'
+        ? undefined
+        : splitIds
+            .map((memberId) => ({
+              memberId,
+              weight: Number.parseFloat((weights[memberId] ?? '').replace(/,/g, '')),
+            }))
+            .filter((w) => Number.isFinite(w.weight) && w.weight > 0);
     const payload = {
+      splitWeights,
       title: title.trim(),
       category,
       amountCents,
@@ -350,21 +395,13 @@ function ExpenseForm({
           <div>
             <div className="mb-1.5 flex items-center justify-between">
               <span className="type-caption text-ink-3">Split among</span>
-              {/* Method segmented (equal split is what the API persists) */}
+              {/* Method segmented: equal, exact amounts, or percentages */}
               <div className="flex rounded-pill bg-surface-2 p-0.5">
                 {(['equal', 'exact', 'percent'] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
-                    onClick={() => {
-                      if (m === 'equal') setMethod('equal');
-                      else {
-                        setMethod('equal');
-                        toast('This demo applies equal splits, exact & percent are on the way', {
-                          tone: 'info',
-                        });
-                      }
-                    }}
+                    onClick={() => setMethod(m)}
                     className={cn(
                       'rounded-pill px-2.5 py-1 text-[12px] font-semibold capitalize transition-colors duration-fast',
                       method === m ? 'bg-surface text-ink shadow-sm' : 'text-ink-3 hover:text-ink',
@@ -402,8 +439,35 @@ function ExpenseForm({
                 );
               })}
             </div>
+            {method !== 'equal' && splitIds.length > 0 && (
+              <div className="mt-2.5 space-y-1.5">
+                {members
+                  .filter((m) => splitIds.includes(m.id))
+                  .map((m) => (
+                    <label key={m.id} className="flex items-center gap-2">
+                      <span className="type-small min-w-0 flex-1 truncate text-ink-2">{m.name}</span>
+                      <input
+                        inputMode="decimal"
+                        value={weights[m.id] ?? ''}
+                        onChange={(e) => setWeights((w) => ({ ...w, [m.id]: e.target.value }))}
+                        placeholder="0"
+                        aria-label={`${m.name}'s ${method === 'exact' ? 'amount' : 'percentage'}`}
+                        className="type-small tnum h-8 w-24 rounded-md border border-border bg-surface px-2 text-right text-ink focus:border-ink focus:outline-none"
+                      />
+                      <span className="type-caption w-8 text-ink-3">{method === 'exact' ? currency : '%'}</span>
+                    </label>
+                  ))}
+                <p className={cn('type-caption tnum', splitValid ? 'text-pine' : 'text-danger')}>
+                  {splitValid
+                    ? 'Adds up'
+                    : method === 'exact'
+                      ? `${splitRemainder > 0 ? 'Left to assign' : 'Over by'}: ${Math.abs(splitRemainder).toFixed(2)} ${currency}`
+                      : `${splitRemainder > 0 ? 'Left to assign' : 'Over by'}: ${Math.abs(splitRemainder).toFixed(1)}%`}
+                </p>
+              </div>
+            )}
             <AnimatePresence mode="wait">
-              {amountCents > 0 && splitIds.length > 0 && (
+              {method === 'equal' && amountCents > 0 && splitIds.length > 0 && (
                 <motion.p
                   key={`${perPerson}-${splitIds.length}`}
                   initial={{ opacity: 0, y: 6 }}

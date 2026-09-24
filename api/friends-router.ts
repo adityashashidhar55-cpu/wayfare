@@ -562,7 +562,7 @@ export const friendsRouter = createRouter({
   /**
    * Owner-only (owner's participant token is the credential): convert the
    * session into a shared trip shell - trip row + trip_days + trip_members
-   * (owner + every participant linked to a userId as editor). The itinerary
+   * (owner + every participant as editor; guests join as pending members, r34). The itinerary
    * is generated later in the normal workspace.
    */
   convert: publicQuery
@@ -616,12 +616,17 @@ export const friendsRouter = createRouter({
       });
       let color = 1;
       for (const p of participants) {
-        if (p.userId == null || p.userId === session.ownerId) continue;
+        if (p.userId === session.ownerId) continue;
+        // r34: guests (no account) used to be dropped here, so the friend who
+        // voted on dates never showed up on the trip, in the expense splits,
+        // or anywhere else. They now join as a pending member - exactly the
+        // shape addMember uses for an emailed invite. If they left an email,
+        // claimPendingTripInvites links this row the moment they sign up.
         await db.insert(schema.tripMembers).values({
           tripId,
-          userId: p.userId,
+          userId: p.userId ?? null,
           name: p.name,
-          email: p.email ?? null,
+          email: p.email?.toLowerCase() ?? null,
           role: "editor",
           presenceColor: PRESENCE_COLORS[color++ % PRESENCE_COLORS.length],
         });

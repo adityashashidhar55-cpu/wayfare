@@ -193,7 +193,7 @@ export default function Login() {
             {guestLogin.isPending ? "Preparing your demo…" : "Try the demo, no account needed"}
           </button>
           <p className="type-caption mt-2.5 text-center text-ink-3">
-            A fresh, empty atlas every time, yours to fill. Sign in afterwards to keep it.
+            A ready-made Japan trip with friends, expenses and a packing list. Sign in afterwards to keep it.
           </p>
           {guestError && (
             <p className="type-small mt-3 rounded-md bg-ochre-soft px-3 py-2 text-center text-ink">

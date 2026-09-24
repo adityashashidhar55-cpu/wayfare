@@ -141,16 +141,31 @@ export async function bootstrapDatabase(): Promise<void> {
     const schemaPath = resolve(process.cwd(), SCHEMA_FILE);
     if (!existsSync(schemaPath)) {
       console.warn(`[bootstrap] ${SCHEMA_FILE} not found, cannot create tables`);
-    } else if (await tableExists(conn, "users")) {
-      console.log("[bootstrap] schema already present");
     } else {
-      console.log("[bootstrap] empty database - creating schema...");
+      // r34: run EVERY statement on every boot. They are all CREATE TABLE IF
+      // NOT EXISTS, so this is a cheap no-op on a set-up database, and it means
+      // (a) a table added in a later release appears on the next deploy with no
+      // manual migration, and (b) one bad statement no longer strands the rest.
+      // Before this, the first failure aborted the loop and the "users exists"
+      // check then skipped schema creation forever - on real MySQL 8 the
+      // api_cache PRIMARY KEY was declared NULL, so every table after it was
+      // simply never created.
+      const fresh = !(await tableExists(conn, "users"));
+      if (fresh) console.log("[bootstrap] empty database - creating schema...");
       let n = 0;
+      const failed: string[] = [];
       for await (const stmt of sqlStatements(schemaPath)) {
-        await conn.query(stmt);
-        n++;
+        try {
+          await conn.query(stmt);
+          n++;
+        } catch (e) {
+          const table = /CREATE TABLE IF NOT EXISTS `(\w+)`/.exec(stmt)?.[1] ?? "?";
+          failed.push(table);
+          console.error(`[bootstrap] schema statement for ${table} failed:`, (e as Error).message);
+        }
       }
-      console.log(`[bootstrap] schema ready (${n} statements)`);
+      if (failed.length) console.error(`[bootstrap] ${failed.length} schema statement(s) failed: ${failed.join(", ")}`);
+      else console.log(`[bootstrap] schema ready (${n} statements${fresh ? "" : ", already present"})`);
     }
 
     // ── Corpus ───────────────────────────────────────────────────────────

@@ -34,9 +34,10 @@ import { PREFERENCE_STYLES } from '@contracts/premium';
 import { VoyagerUpsellContent } from '@/components/trips/AiTripBuilder';
 import { matchRouteHint, POPULAR_ROUTE_HINTS } from '@/components/roadtrip/popularRoutes';
 import { cn } from '@/lib/utils';
+import RoutePreview, { type RoutePreviewData } from '@/components/roadtrip/RoutePreview';
 
 type Mode = 'car' | 'transit';
-type Phase = 'form' | 'generating' | 'upsell' | 'success';
+type Phase = 'form' | 'preview' | 'generating' | 'upsell' | 'success';
 
 const DAYS_MIN = 2;
 const DAYS_MAX = 21;
@@ -408,6 +409,10 @@ function RoadtripBuilderContent({ onOpenChange }: { open: boolean; onOpenChange:
   const [formError, setFormError] = useState<string | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [result, setResult] = useState<PlanResult | null>(null);
+  /* r34: preview the route (read-only) before committing to a trip. */
+  const [preview, setPreview] = useState<RoutePreviewData | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const cancelledRef = useRef(false);
 
@@ -534,6 +539,25 @@ function RoadtripBuilderContent({ onOpenChange }: { open: boolean; onOpenChange:
       });
   };
 
+  const openPreview = () => {
+    setTriedSubmit(true);
+    if (!from || !to) return;
+    setPhase('preview');
+    setPreview(null);
+    setPreviewError(null);
+    setPreviewLoading(true);
+    utils.client.roadtrip.previewRoute
+      .query({
+        originText: from,
+        destText: to,
+        via: via.length ? via : undefined,
+        styles: styles.length ? styles : undefined,
+      })
+      .then((d) => setPreview(d as RoutePreviewData))
+      .catch((e: { message?: string }) => setPreviewError(e?.message || 'Could not preview this route.'))
+      .finally(() => setPreviewLoading(false));
+  };
+
   const swapEndpoints = () => {
     setFrom(to);
     setTo(from);
@@ -561,7 +585,26 @@ function RoadtripBuilderContent({ onOpenChange }: { open: boolean; onOpenChange:
       )}
     >
       <AnimatePresence mode="wait" initial={false}>
-        {phase === 'generating' ? (
+        {phase === 'preview' ? (
+          <motion.div
+            key="preview"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.28, ease: EASE_EXPO }}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <RoutePreview
+              data={preview}
+              loading={previewLoading}
+              error={previewError}
+              onBack={() => setPhase('form')}
+              onPlan={submit}
+              days={days}
+              modeLabel={mode === 'car' ? 'by car' : 'public transport'}
+            />
+          </motion.div>
+        ) : phase === 'generating' ? (
           <motion.div
             key="generating"
             initial={{ opacity: 0, y: 12 }}
@@ -999,10 +1042,15 @@ function RoadtripBuilderContent({ onOpenChange }: { open: boolean; onOpenChange:
                   {days} days · {mode === 'car' ? 'by car' : 'public transport'}
                   {via.length ? ` · ${via.length} stopover${via.length === 1 ? '' : 's'}` : ''}
                 </span>
-                <Button onClick={submit} size="lg" pill className="min-w-[170px]">
-                  <Route className="h-4 w-4" strokeWidth={1.75} />
-                  Plan my route
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button onClick={openPreview} size="lg" pill variant="outline">
+                    Preview
+                  </Button>
+                  <Button onClick={submit} size="lg" pill className="min-w-[170px]">
+                    <Route className="h-4 w-4" strokeWidth={1.75} />
+                    Plan my route
+                  </Button>
+                </div>
               </div>
             </div>
           </motion.div>

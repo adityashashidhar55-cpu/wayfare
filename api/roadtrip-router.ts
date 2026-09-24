@@ -29,7 +29,7 @@
  * distance-based estimates when neither covers the corridor. Nothing here
  * throws on external-API failure - every helper degrades to estimates.
  */
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, between, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as schema from "@db/schema";
@@ -40,6 +40,7 @@ import { legFollowsRoute, matchPopularRoute } from "./lib/popular-routes";
 import { fetchJson } from "./lib/http";
 import { isStatueLike, profileStyles, styleMatchScore, STATUE_PENALTY } from "./lib/style-map";
 import { isParkingLikeName } from "./lib/place-quality"; // r15-places
+import { boxAround, haversine, ROADSIDE_CATEGORIES, samplePoints, type LngLat } from "./lib/roadside";
 
 // ── Shared types ─────────────────────────────────────────────────────────────
 export type CommuteKind = "car" | "train" | "bus";
@@ -1166,6 +1167,64 @@ async function cityPlaces(city: CorridorCity, limit: number, styles: Set<string>
   return spreadStatues(out, 4);
 }
 
+/**
+ * r34: scenic / historic places within `radiusKm` of the route line, excluding
+ * anything inside a corridor city (those already have their own stops).
+ * One indexed bbox query per sample point; at most `limit` results, best
+ * quality first, never two within 3 km of each other.
+ */
+export async function roadsidePlaces(
+  polyline: LngLat[],
+  cityCenters: { lat: number; lng: number }[],
+  radiusKm: number,
+  limit: number,
+) {
+  const samples = samplePoints(polyline, 14);
+  const ep = schema.explorePlaces;
+  const seen = new Map<number, { row: typeof ep.$inferSelect; km: number }>();
+  await Promise.all(
+    samples.map(async ([lng, lat]) => {
+      const b = boxAround(lat, lng, radiusKm);
+      const rows = await getDb()
+        .select()
+        .from(ep)
+        .where(and(
+          inArray(ep.category, [...ROADSIDE_CATEGORIES]),
+          between(ep.lat, b.minLat, b.maxLat),
+          between(ep.lng, b.minLng, b.maxLng),
+          eq(ep.approved, true),
+          eq(ep.isChain, false),
+        ))
+        .orderBy(desc(ep.qualityScore))
+        .limit(6);
+      for (const r of rows) {
+        if (r.lat == null || r.lng == null) continue;
+        const km = haversine(lat, lng, Number(r.lat), Number(r.lng));
+        if (km > radiusKm) continue;
+        const prev = seen.get(r.id);
+        if (!prev || km < prev.km) seen.set(r.id, { row: r, km });
+      }
+    }),
+  );
+  const out: { row: typeof ep.$inferSelect; km: number }[] = [];
+  const sorted = [...seen.values()]
+    .filter(({ row }) => !isParkingLikeName(row.name))
+    .filter(({ row }) => cityCenters.every((c) => haversine(c.lat, c.lng, Number(row.lat), Number(row.lng)) > 12))
+    .sort((a, b) => (b.row.qualityScore ?? 0) - (a.row.qualityScore ?? 0));
+  for (const cand of sorted) {
+    if (out.length >= limit) break;
+    if (out.some((o) => haversine(Number(o.row.lat), Number(o.row.lng), Number(cand.row.lat), Number(cand.row.lng)) < 3)) continue;
+    out.push(cand);
+  }
+  return out.map(({ row, km }) => ({
+    id: Number(row.id), name: row.name, category: row.category,
+    description: row.description, image: row.image,
+    lat: Number(row.lat), lng: Number(row.lng),
+    detourKm: Math.round(km * 10) / 10,
+    qualityScore: row.qualityScore ?? 0,
+  }));
+}
+
 // ── Router ───────────────────────────────────────────────────────────────────
 export const roadtripRouter = createRouter({
   /**
@@ -1227,6 +1286,8 @@ export const roadtripRouter = createRouter({
         styles: z.array(z.string()).optional(),
         /** Places per corridor city in the preview. */
         perCity: z.number().int().min(1).max(12).default(5),
+        /** r34: how far off the route a roadside stop may be. */
+        detourKm: z.number().min(1).max(30).default(8),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -1304,8 +1365,19 @@ export const roadtripRouter = createRouter({
         })),
       );
 
+      const alongTheWay = await roadsidePlaces(
+        polyline as LngLat[],
+        [origin, dest, ...viaGeo, ...corridor].map((c) => ({ lat: c.lat, lng: c.lng })),
+        input.detourKm,
+        10,
+      ).catch((e) => {
+        console.warn("[roadtrip] roadside lookup failed:", (e as Error).message);
+        return [];
+      });
+
       return {
         origin, dest,
+        alongTheWay,
         via: viaGeo.map((v) => ({ name: v.name, lat: v.lat, lng: v.lng })),
         totalKm: Math.round(route?.km ?? airKm),
         driveHours: route ? Math.round((route.durationMin / 60) * 10) / 10 : null,

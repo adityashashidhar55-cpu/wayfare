@@ -4,7 +4,9 @@ import {
   Check,
   Luggage,
   ListChecks,
+  Lock,
   MoreHorizontal,
+  Users,
   Plus,
   ShoppingBag,
   Sparkles,
@@ -137,11 +139,14 @@ function CheckRow({
   item,
   onToggle,
   onDelete,
+  onVisibility,
 }: {
   item: WsChecklistItem;
   onToggle: () => void;
   onDelete: () => void;
+  onVisibility: () => void;
 }) {
+  const isPrivate = item.visibility === "private";
   return (
     <motion.li
       layout
@@ -193,6 +198,24 @@ function CheckRow({
         >
           {item.label}
         </span>
+        {isPrivate ? (
+          <span className="type-caption flex shrink-0 items-center gap-1 rounded-pill bg-surface-2 px-2 py-0.5 text-ink-3">
+            <Lock className="h-3 w-3" strokeWidth={2} /> Only you
+          </span>
+        ) : null}
+        <button
+          type="button"
+          aria-label={isPrivate ? `Share ${item.label} with the group` : `Make ${item.label} private`}
+          title={isPrivate ? "Share with the group" : "Make private (only you will see it)"}
+          onClick={onVisibility}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm text-ink-3 opacity-0 transition-all duration-fast hover:bg-surface-2 hover:text-ink group-hover:opacity-100 focus:opacity-100"
+        >
+          {isPrivate ? (
+            <Users className="h-3.5 w-3.5" strokeWidth={1.75} />
+          ) : (
+            <Lock className="h-3.5 w-3.5" strokeWidth={1.75} />
+          )}
+        </button>
         <button
           type="button"
           aria-label={`Remove ${item.label}`}
@@ -239,10 +262,18 @@ function ListCard({
       old ? { ...old, checklist: fn(old.checklist) } : old
     );
 
-  const toggle = trpc.trips.toggleChecklistItem.useMutation({
+  /* r34: these go through collab-router, which knows about private items.
+     The old trips.* procedures treated every row as the group's. */
+  const [privateDraft, setPrivateDraft] = useState(false);
+  const toggle = trpc.collab.toggleChecklistItem.useMutation({
     onError: () => utils.trips.get.invalidate({ id: tripId }),
   });
-  const add = trpc.trips.addChecklistItem.useMutation({
+  const visibility = trpc.collab.setChecklistVisibility.useMutation({
+    onSettled: () => utils.trips.get.invalidate({ id: tripId }),
+    onError: e =>
+      push({ title: "Could not change who sees it", description: e.message, kind: "danger" }),
+  });
+  const add = trpc.collab.addChecklistItem.useMutation({
     onSettled: () => utils.trips.get.invalidate({ id: tripId }),
     onError: e =>
       push({
@@ -251,9 +282,19 @@ function ListCard({
         kind: "danger",
       }),
   });
-  const del = trpc.trips.deleteChecklistItem.useMutation({
+  const del = trpc.collab.deleteChecklistItem.useMutation({
     onSettled: () => utils.trips.get.invalidate({ id: tripId }),
+    onError: e =>
+      push({ title: "Could not remove item", description: e.message, kind: "danger" }),
   });
+
+  const onVisibility = (item: WsChecklistItem) => {
+    const next = item.visibility === "private" ? "shared" : "private";
+    patchCache(list =>
+      list.map(i => (i.id === item.id ? { ...i, visibility: next } : i))
+    );
+    visibility.mutate({ tripId, id: item.id, visibility: next });
+  };
 
   const onToggle = (item: WsChecklistItem) => {
     patchCache(list =>
@@ -282,13 +323,18 @@ function ListCard({
          will send back - a shared, unassigned item - or the list flickers
          when the real row replaces it. */
       ownerId: null,
-      visibility: 'shared',
+      visibility: privateDraft ? 'private' : 'shared',
       assignedMemberId: null,
       createdAt: new Date(),
     };
     patchCache(list => [...list, temp]);
     setDraft("");
-    add.mutate({ tripId, list: listKey, label: labelText });
+    add.mutate({
+      tripId,
+      list: listKey,
+      label: labelText,
+      visibility: privateDraft ? "private" : "shared",
+    });
   };
 
   const clearCompleted = () => {
@@ -360,6 +406,7 @@ function ListCard({
               item={item}
               onToggle={() => onToggle(item)}
               onDelete={() => onDelete(item)}
+              onVisibility={() => onVisibility(item)}
             />
           ))}
         </AnimatePresence>
@@ -378,10 +425,29 @@ function ListCard({
           onKeyDown={e => {
             if (e.key === "Enter") submit();
           }}
-          placeholder="Add an item…"
+          placeholder={privateDraft ? "Add a private item, only you will see it…" : "Add an item for the group…"}
           aria-label={`Add an item to ${label}`}
           className="type-small h-8 w-full bg-transparent text-ink placeholder:text-ink-3 focus:outline-none"
         />
+        <button
+          type="button"
+          role="switch"
+          aria-checked={privateDraft}
+          onClick={() => setPrivateDraft(v => !v)}
+          title={privateDraft ? "New items are private to you" : "New items are shared with the group"}
+          className={cn(
+            "type-caption flex shrink-0 items-center gap-1 rounded-pill border px-2.5 py-1 font-semibold transition-colors duration-fast",
+            privateDraft
+              ? "border-ink bg-ink text-surface"
+              : "border-border-strong text-ink-2 hover:border-ink"
+          )}
+        >
+          {privateDraft ? (
+            <><Lock className="h-3 w-3" strokeWidth={2} /> Private</>
+          ) : (
+            <><Users className="h-3 w-3" strokeWidth={2} /> Group</>
+          )}
+        </button>
       </div>
     </motion.section>
   );
@@ -389,16 +455,34 @@ function ListCard({
 
 /* ── smart suggestions (§3 right rail) ── */
 
-function suggestionsFor(destination: string): {
+/** r34: the Japan suggestion said "in spring" for every trip, October included. */
+const SOUTHERN = /australia|new zealand|argentina|chile|south africa|uruguay|sydney|melbourne|auckland|cape town|buenos aires|santiago/i;
+function seasonFor(destination: string, startDate?: string | Date | null): "spring" | "summer" | "autumn" | "winter" | null {
+  if (!startDate) return null;
+  const d = new Date(startDate);
+  if (Number.isNaN(d.getTime())) return null;
+  let m = d.getMonth(); // 0 = Jan
+  if (SOUTHERN.test(destination)) m = (m + 6) % 12;
+  return m <= 1 || m === 11 ? "winter" : m <= 4 ? "spring" : m <= 7 ? "summer" : "autumn";
+}
+
+const JAPAN_SEASON: Record<string, { caption: string; extra: string[] }> = {
+  spring: { caption: "in spring, mild days and light rain", extra: ["Compact umbrella", "Layers"] },
+  summer: { caption: "in summer, humid heat and sudden showers", extra: ["Cooling towel", "Compact umbrella"] },
+  autumn: { caption: "in autumn, crisp mornings and warm afternoons", extra: ["Light jacket", "Layers"] },
+  winter: { caption: "in winter, cold and dry", extra: ["Warm coat", "Heat packs (kairo)"] },
+};
+
+function suggestionsFor(destination: string, startDate?: string | Date | null): {
   caption: string;
   items: string[];
 } {
   if (/kyoto|osaka|nara|tokyo|japan/i.test(destination)) {
+    const season = JAPAN_SEASON[seasonFor(destination, startDate) ?? "spring"];
     return {
-      caption: `Based on ${destination.split(",")[0]} in spring, mild days and light rain`,
+      caption: `Based on ${destination.split(",")[0]} ${season.caption}`,
       items: [
-        "Compact umbrella",
-        "Layers",
+        ...season.extra,
         "IC transit card",
         "Power adapter (Type A)",
         "Coin pouch",
@@ -430,17 +514,19 @@ function suggestionsFor(destination: string): {
 
 function SmartSuggestions({
   destination,
+  startDate,
   tripId,
   packing,
 }: {
   destination: string;
+  startDate?: string | Date | null;
   tripId: number;
   packing: WsChecklistItem[];
 }) {
   const utils = trpc.useUtils();
   const { caption, items } = useMemo(
-    () => suggestionsFor(destination),
-    [destination]
+    () => suggestionsFor(destination, startDate),
+    [destination, startDate]
   );
   const [added, setAdded] = useState<Set<string>>(new Set());
   const add = trpc.trips.addChecklistItem.useMutation({
@@ -552,6 +638,7 @@ export default function ChecklistsTab({
         </div>
         <SmartSuggestions
           destination={data.trip.destination}
+          startDate={data.trip.startDate}
           tripId={tripId}
           packing={byList.get("packing") ?? []}
         />
