@@ -13,6 +13,9 @@ import {
   googleCallback,
   appleStart,
   appleCallback,
+  googleIdTokenCallback,
+  microsoftStart,
+  microsoftCallback,
 } from "./oauth-providers";
 import { Paths } from "@contracts/constants";
 import { handleInboundEmail } from "./bookings-router";
@@ -47,6 +50,9 @@ app.get("/api/oauth/google/start", googleStart);
 app.get("/api/oauth/google/callback", googleCallback);
 app.get("/api/oauth/apple/start", appleStart);
 app.post("/api/oauth/apple/callback", appleCallback);
+app.post("/api/oauth/google/idtoken", googleIdTokenCallback);
+app.get("/api/oauth/microsoft/start", microsoftStart);
+app.post("/api/oauth/microsoft/callback", microsoftCallback);
 /**
  * r27: Razorpay payment webhook - the AUTHORITATIVE activation path.
  *

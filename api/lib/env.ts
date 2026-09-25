@@ -30,6 +30,9 @@ export const env = {
   // Optional social OAuth providers (enabled when credentials are provided)
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+  // r35: Microsoft (personal + work/school accounts). Only a client ID - the
+  // sign-in uses the OIDC id_token flow, so there is no secret to store.
+  microsoftClientId: process.env.MICROSOFT_CLIENT_ID ?? "",
   appleClientId: process.env.APPLE_CLIENT_ID ?? "",
   appleTeamId: process.env.APPLE_TEAM_ID ?? "",
   appleKeyId: process.env.APPLE_KEY_ID ?? "",

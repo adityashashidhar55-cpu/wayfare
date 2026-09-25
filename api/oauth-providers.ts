@@ -19,7 +19,10 @@ import { claimPendingFriendParticipations, claimPendingTripInvites, findUserByUn
 export function providerAvailability(origin?: string) {
   const base = origin ?? "";
   return {
-    google: Boolean(env.googleClientId && env.googleClientSecret),
+    // r35: a client ID alone is enough - without a secret, Google runs the
+    // id_token flow (see googleStart), which needs nothing secret stored.
+    google: Boolean(env.googleClientId),
+    microsoft: Boolean(env.microsoftClientId),
     apple: Boolean(env.appleClientId && env.appleTeamId && env.appleKeyId && env.applePrivateKey),
     // Kimi is now reported like any other provider so the client can hide the
     // button on deployments that aren't hosted by Kimi, instead of rendering a
@@ -32,6 +35,8 @@ export function providerAvailability(origin?: string) {
       ? {
           google: `${base}/api/oauth/google/callback`,
           apple: `${base}/api/oauth/apple/callback`,
+          microsoft: `${base}/api/oauth/microsoft/callback`,
+          googleIdToken: `${base}/api/oauth/google/idtoken`,
         }
       : undefined,
   };
@@ -81,6 +86,17 @@ function originOf(c: Context): string {
 export function googleStart(c: Context) {
   if (!providerAvailability().google) {
     return c.json({ error: "google_not_configured" }, 400);
+  }
+  // r35: no client secret -> OIDC id_token flow. Google posts a signed ID
+  // token straight back to us; we verify its signature against Google's
+  // published keys, so nothing secret has to live on the server.
+  if (!env.googleClientSecret) {
+    return idTokenStart(c, {
+      authorize: "https://accounts.google.com/o/oauth2/v2/auth",
+      clientId: env.googleClientId,
+      redirectUri: `${originOf(c)}/api/oauth/google/idtoken`,
+      extra: { prompt: "select_account" },
+    });
   }
   const redirectUri = `${originOf(c)}/api/oauth/google/callback`;
   const state = crypto.randomUUID();
@@ -195,5 +211,124 @@ export async function appleCallback(c: Context) {
     });
   } catch {
     return c.redirect("/login?error=apple");
+  }
+}
+
+// ─── r35: OIDC id_token sign-in (Google without a secret, Microsoft) ─────────
+//
+// Response type `id_token` with `response_mode=form_post`: the identity
+// provider POSTs a signed JWT to our callback. We check its signature against
+// the provider's public keys (JWKS), its audience (our client ID), its issuer,
+// its expiry, and a one-time nonce we set in a cookie before redirecting, so a
+// token minted for another app or replayed from elsewhere is rejected.
+// Nothing secret is stored on the server for either provider.
+
+const NONCE_COOKIE = "wf_oidc_nonce";
+const MICROSOFT_CONSUMER_TENANT = "9188040d-6c67-4c5b-b112-36a304b66dad";
+const GOOGLE_JWKS = jose.createRemoteJWKSet(new URL("https://www.googleapis.com/oauth2/v3/certs"));
+const MICROSOFT_JWKS = jose.createRemoteJWKSet(
+  new URL("https://login.microsoftonline.com/common/discovery/v2.0/keys"),
+);
+
+function idTokenStart(
+  c: Context,
+  opts: { authorize: string; clientId: string; redirectUri: string; extra?: Record<string, string> },
+) {
+  const nonce = crypto.randomUUID();
+  // SameSite=None: the provider's form_post back to us is a cross-site POST,
+  // and a Lax cookie would not be sent with it.
+  c.header(
+    "set-cookie",
+    cookie.serialize(NONCE_COOKIE, nonce, {
+      httpOnly: true, secure: true, sameSite: "none", path: "/api/oauth", maxAge: 600,
+    }),
+  );
+  const url = new URL(opts.authorize);
+  url.searchParams.set("client_id", opts.clientId);
+  url.searchParams.set("redirect_uri", opts.redirectUri);
+  url.searchParams.set("response_type", "id_token");
+  url.searchParams.set("response_mode", "form_post");
+  url.searchParams.set("scope", "openid email profile");
+  url.searchParams.set("nonce", nonce);
+  for (const [k, v] of Object.entries(opts.extra ?? {})) url.searchParams.set(k, v);
+  return c.redirect(url.toString());
+}
+
+async function readPostedIdToken(c: Context): Promise<{ token: string; nonce: string } | null> {
+  const body = await c.req.parseBody();
+  const token = typeof body.id_token === "string" ? body.id_token : null;
+  const nonce = cookie.parse(c.req.header("cookie") ?? "")[NONCE_COOKIE];
+  if (!token || !nonce) return null;
+  return { token, nonce };
+}
+
+/** Exported for tests: the issuer rule for Microsoft's multi-tenant endpoint. */
+export function microsoftIssuerOk(iss: unknown, tid: unknown): boolean {
+  return typeof iss === "string" && typeof tid === "string" &&
+    iss === `https://login.microsoftonline.com/${tid}/v2.0`;
+}
+
+export async function googleIdTokenCallback(c: Context) {
+  try {
+    const posted = await readPostedIdToken(c);
+    if (!posted) return c.redirect("/login?error=google");
+    const { payload } = await jose.jwtVerify(posted.token, GOOGLE_JWKS, {
+      audience: env.googleClientId,
+      issuer: ["https://accounts.google.com", "accounts.google.com"],
+    });
+    if (payload.nonce !== posted.nonce) throw new Error("nonce mismatch");
+    const p = payload as { sub: string; name?: string; email?: string; email_verified?: boolean; picture?: string };
+    return establishSession(c, {
+      unionId: `google:${p.sub}`, // same id the code flow uses, so accounts line up
+      name: p.name ?? null,
+      email: p.email_verified === false ? null : p.email ?? null,
+      avatar: p.picture ?? null,
+    });
+  } catch (err) {
+    console.warn("[oauth] google id_token rejected:", (err as Error).message);
+    return c.redirect("/login?error=google");
+  }
+}
+
+export function microsoftStart(c: Context) {
+  if (!env.microsoftClientId) return c.json({ error: "microsoft_not_configured" }, 400);
+  return idTokenStart(c, {
+    // `common` = personal Microsoft accounts (Outlook, Hotmail) AND work/school.
+    authorize: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    clientId: env.microsoftClientId,
+    redirectUri: `${originOf(c)}/api/oauth/microsoft/callback`,
+    extra: { prompt: "select_account" },
+  });
+}
+
+export async function microsoftCallback(c: Context) {
+  try {
+    const posted = await readPostedIdToken(c);
+    if (!posted) return c.redirect("/login?error=microsoft");
+    // Issuer varies by tenant on the `common` endpoint, so it is checked by
+    // hand against the token's own tid rather than a fixed string.
+    const { payload } = await jose.jwtVerify(posted.token, MICROSOFT_JWKS, {
+      audience: env.microsoftClientId,
+    });
+    if (!microsoftIssuerOk(payload.iss, payload.tid)) throw new Error("bad issuer");
+    if (payload.nonce !== posted.nonce) throw new Error("nonce mismatch");
+    const p = payload as {
+      sub: string; tid?: string; name?: string; email?: string; preferred_username?: string; xms_edov?: boolean;
+    };
+    // An email is only trusted (it is used to claim pending trip invites) when
+    // Microsoft vouches for it: personal accounts, or a tenant whose domain
+    // ownership is verified (xms_edov). Any tenant admin can otherwise put any
+    // address in a work account's email claim and inherit someone's invites.
+    const trusted = p.tid === MICROSOFT_CONSUMER_TENANT || p.xms_edov === true;
+    const claimed = p.email ?? (p.preferred_username?.includes("@") ? p.preferred_username : undefined);
+    const email = trusted ? claimed : undefined;
+    return establishSession(c, {
+      unionId: `microsoft:${p.sub}`,
+      name: p.name ?? null,
+      email: email ?? null,
+    });
+  } catch (err) {
+    console.warn("[oauth] microsoft id_token rejected:", (err as Error).message);
+    return c.redirect("/login?error=microsoft");
   }
 }
