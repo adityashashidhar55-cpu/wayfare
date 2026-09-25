@@ -9,6 +9,8 @@ import Home from '@/pages/Home';
 // r21-perf: every route except the landing Home is code-split so the first
 // paint only parses the chunks it actually needs (Home stays eager for LCP).
 const Login = lazy(() => import('@/pages/Login'));
+const Privacy = lazy(() => import('@/pages/Legal').then((m) => ({ default: m.Privacy })));
+const Terms = lazy(() => import('@/pages/Legal').then((m) => ({ default: m.Terms })));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 const Onboarding = lazy(() => import('@/pages/Onboarding'));
 const Trips = lazy(() => import('@/pages/Trips'));
@@ -60,6 +62,8 @@ export default function App() {
             <Route path="/get-app" element={lazyEl(<GetApp />)} />
             <Route path="/kids" element={lazyEl(<KidsPortal />)} />
             <Route path="/faq" element={lazyEl(<Faq />)} />
+            <Route path="/privacy" element={lazyEl(<Privacy />)} />
+            <Route path="/terms" element={lazyEl(<Terms />)} />
           </Route>
 
           {/* Auth (backend graft owns this page) */}

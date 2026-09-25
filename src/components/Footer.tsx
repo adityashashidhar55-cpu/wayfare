@@ -27,7 +27,7 @@ const COLUMNS: { title: string; links: { label: string; to: string }[] }[] = [
   {
     title: 'Resources',
     links: [
-      { label: 'Help center', to: '/' },
+      { label: 'Help center', to: '/faq' },
       { label: 'City guides', to: '/explore' },
       { label: 'Community', to: '/' },
       { label: 'Status', to: '/' },
@@ -36,9 +36,9 @@ const COLUMNS: { title: string; links: { label: string; to: string }[] }[] = [
   {
     title: 'Legal',
     links: [
-      { label: 'Privacy', to: '/' },
-      { label: 'Terms', to: '/' },
-      { label: 'Cookies', to: '/' },
+      { label: 'Privacy', to: '/privacy' },
+      { label: 'Terms', to: '/terms' },
+      { label: 'Cookies', to: '/privacy' },
     ],
   },
 ];
